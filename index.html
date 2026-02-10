@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Directory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        /* Home View Styles */
+        #homeView {
+            display: block;
+        }
+
+        #resultsView {
+            display: none;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 50px 18px 20px;
+            font-size: 1.1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5em;
+            color: #999;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 30px 0;
+            color: #999;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-weight: 600;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .category-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 15px;
+            border-radius: 15px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .category-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .category-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .icon-large {
+            font-size: 1.4em;
+        }
+
+        /* Results View Styles */
+        .back-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .back-btn:hover {
+            background: #f0f0f0;
+            transform: translateX(-3px);
+        }
+
+        .results-header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .results-search {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .results-search input {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .results-search input:focus {
+            border-color: #667eea;
+        }
+
+        .clear-btn {
+            background: #f0f0f0;
+            color: #666;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .clear-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .results-count {
+            color: #333;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .search-term {
+            color: #667eea;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .service-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .sr-number {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .jobs-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .job-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .contact-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contact-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .contact-link:hover {
+            text-decoration: underline;
+        }
+
+        .icon {
+            font-size: 1.2em;
+        }
+
+        .address {
+            color: #666;
+            display: flex;
+            align-items: start;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .reference {
+            color: #888;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
+        .no-results {
+            background: white;
+            border-radius: 15px;
+            padding: 50px 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .no-results h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.6em;
+        }
+
+        .no-results p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.05em;
+        }
+
+        .suggestions {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .suggestions h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .suggestion-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .suggestion-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .suggestion-tag:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .categories-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .category-btn {
+                padding: 15px 10px;
+                font-size: 0.95em;
+            }
+
+            .results-search {
+                flex-direction: column;
+            }
+
+            .clear-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Service Directory</h1>
+            <p>Find Trusted Service Providers</p>
+        </div>
+
+        <!-- HOME VIEW -->
+        <div id="homeView">
+            <div class="search-card">
+                <div class="search-section">
+                    <h2>🔍 Search by Service Name</h2>
+                    <div class="search-input-wrapper">
+                        <input 
+                            type="text" 
+                            id="homeSearchInput" 
+                            class="search-input" 
+                            placeholder="Type any service (e.g., Plumbing, Electrician, Tiles...)"
+                            autocomplete="off"
+                        >
+                        <span class="search-icon">🔍</span>
+                    </div>
+                </div>
+
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <div class="categories-section">
+                    <h2>🏠 Browse by Category</h2>
+                    <div class="categories-grid">
+                        <button class="category-btn" onclick="searchFromHome('Plumbing')">
+                            <span class="icon-large">🚰</span>
+                            <span>Plumbing</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Electrician')">
+                            <span class="icon-large">💡</span>
+                            <span>Electrician</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('MSEB Work')">
+                            <span class="icon-large">⚡</span>
+                            <span>MSEB Work</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Tiles')">
+                            <span class="icon-large">🔲</span>
+                            <span>Tiles</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('LCD Projector')">
+                            <span class="icon-large">📽️</span>
+                            <span>LCD Projector</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Curtain')">
+                            <span class="icon-large">🪟</span>
+                            <span>Curtain Bracket</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Geysor')">
+                            <span class="icon-large">♨️</span>
+                            <span>Geysor</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Electric')">
+                            <span class="icon-large">🔌</span>
+                            <span>Electric</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('AC')">
+                            <span class="icon-large">❄️</span>
+                            <span>AC Repair</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Fridge')">
+                            <span class="icon-large">🧊</span>
+                            <span>Fridge Repair</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Aluminium')">
+                            <span class="icon-large">🪟</span>
+                            <span>Aluminium Work</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Tree')">
+                            <span class="icon-large">🌳</span>
+                            <span>Tree Cutting</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('Maintenance')">
+                            <span class="icon-large">🔧</span>
+                            <span>Home Maintenance</span>
+                        </button>
+                        <button class="category-btn" onclick="searchFromHome('')">
+                            <span class="icon-large">📋</span>
+                            <span>View All</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS VIEW -->
+        <div id="resultsView">
+            <button class="back-btn" onclick="goToHome()">
+                ⬅️ Back to Home
+            </button>
+
+            <div class="results-header">
+                <div class="results-search">
+                    <input 
+                        type="text" 
+                        id="resultsSearchInput" 
+                        placeholder="🔍 Refine your search..."
+                        autocomplete="off"
+                    >
+                    <button class="clear-btn" onclick="clearAndShowAll()">
+                        ✖️ Clear
+                    </button>
+                </div>
+                <div class="results-count" id="resultsCount"></div>
+            </div>
+
+            <div id="resultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Service providers data
+        const serviceProviders = [
+            {
+                srNo: 1,
+                name: "Mahesh Wadaskar",
+                job1: "MSEB Work",
+                job2: "Plumbing",
+                job3: "LCD Projector",
+                contact1: "1234567891",
+                contact2: "1234567891",
+                address: "MG Road",
+                reference: "Bhavna"
+            },
+            {
+                srNo: 2,
+                name: "Kharat Patil",
+                job1: "MSEB Work",
+                job2: "Plumbing",
+                job3: "Curtain Bracket",
+                contact1: "1234567891",
+                contact2: "1234567891",
+                address: "Gajanan Colony",
+                reference: "Bhavna"
+            },
+            {
+                srNo: 3,
+                name: "Ganesh Ambekar",
+                job1: "LCD Projector",
+                job2: "Plumbing",
+                job3: "Geysor",
+                contact1: "1234567891",
+                contact2: "1234567891",
+                address: "Gajanan Colony",
+                reference: "Bhavna"
+            },
+            {
+                srNo: 4,
+                name: "Laxman Bhapkar",
+                job1: "Digging and Cutting of Trees",
+                job2: "Plumbing",
+                job3: "Curtain Bracket",
+                contact1: "1234567891",
+                contact2: "1234567891",
+                address: "Chetak Ghoda, Jai Vishwabharti Colony",
+                reference: "Bhavna"
+            },
+            {
+                srNo: 5,
+                name: "Prakash Dhangar Mistri",
+                job1: "Tiles",
+                job2: "Plumbing",
+                job3: "Electrician",
+                contact1: "1234567891",
+                contact2: "1234567891",
+                address: "Gajanan Colony",
+                reference: "Bhavna"
+            },
+            {
+                srNo: 6,
+                name: "Ramesh Shinde",
+                job1: "Maintenance of Home / Tiles",
+                job2: "Plumbing",
+                job3: "Electric",
+                contact1: "1234567891",
+                contact2: "1234567891",
+                address: "Jay Bhavani Nagar, N-4",
+                reference: "Bhavna"
+            },
+            {
+                srNo: 7,
+                name: "Vetal",
+                job1: "Repairing of Mixer, AC, Electric Motor, Fridge, Cooler",
+                job2: "Plumbing",
+                job3: "Aluminium Windows",
+                contact1: "1234567891",
+                contact2: "1234567891",
+                address: "Gajanan Colony",
+                reference: "Bhavna"
+            }
+        ];
+
+        const homeView = document.getElementById('homeView');
+        const resultsView = document.getElementById('resultsView');
+        const homeSearchInput = document.getElementById('homeSearchInput');
+        const resultsSearchInput = document.getElementById('resultsSearchInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsCount = document.getElementById('resultsCount');
+
+        function goToHome() {
+            homeView.style.display = 'block';
+            resultsView.style.display = 'none';
+            homeSearchInput.value = '';
+            window.scrollTo(0, 0);
+        }
+
+        function goToResults() {
+            homeView.style.display = 'none';
+            resultsView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function searchFromHome(query) {
+            resultsSearchInput.value = query;
+            goToResults();
+            performSearch(query);
+        }
+
+        function clearAndShowAll() {
+            resultsSearchInput.value = '';
+            performSearch('');
+        }
+
+        function performSearch(query) {
+            const searchTerm = query.toLowerCase().trim();
+            let filtered;
+
+            if (!searchTerm) {
+                filtered = serviceProviders;
+            } else {
+                filtered = serviceProviders.filter(provider => {
+                    return (
+                        provider.name.toLowerCase().includes(searchTerm) ||
+                        provider.job1.toLowerCase().includes(searchTerm) ||
+                        provider.job2.toLowerCase().includes(searchTerm) ||
+                        provider.job3.toLowerCase().includes(searchTerm) ||
+                        provider.address.toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+
+            displayResults(filtered, query);
+        }
+
+        function displayResults(providers, query) {
+            if (providers.length === 0) {
+                resultsCount.innerHTML = `No results found`;
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <h3>😕 No Results Found</h3>
+                        <p>We couldn't find any service providers matching "${query}"</p>
+                        <div class="suggestions">
+                            <h4>Try searching for:</h4>
+                            <div class="suggestion-tags">
+                                <span class="suggestion-tag" onclick="performSearch('Plumbing'); resultsSearchInput.value='Plumbing';">Plumbing</span>
+                                <span class="suggestion-tag" onclick="performSearch('Electrician'); resultsSearchInput.value='Electrician';">Electrician</span>
+                                <span class="suggestion-tag" onclick="performSearch('MSEB Work'); resultsSearchInput.value='MSEB Work';">MSEB Work</span>
+                                <span class="suggestion-tag" onclick="performSearch('Tiles'); resultsSearchInput.value='Tiles';">Tiles</span>
+                                <span class="suggestion-tag" onclick="performSearch('AC'); resultsSearchInput.value='AC';">AC Repair</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsCount.innerHTML = `Found <strong>${providers.length}</strong> service provider${providers.length > 1 ? 's' : ''} ${query ? `for <span class="search-term">"${query}"</span>` : ''}`;
+
+            resultsContainer.innerHTML = providers.map(provider => `
+                <div class="service-card">
+                    <div class="service-header">
+                        <div class="service-name">${provider.name}</div>
+                        <div class="sr-number">#${provider.srNo}</div>
+                    </div>
+                    
+                    <div class="jobs-container">
+                        ${provider.job1 ? `<span class="job-tag">🔧 ${provider.job1}</span>` : ''}
+                        ${provider.job2 ? `<span class="job-tag">🔧 ${provider.job2}</span>` : ''}
+                        ${provider.job3 ? `<span class="job-tag">🔧 ${provider.job3}</span>` : ''}
+                    </div>
+                    
+                    <div class="contact-section">
+                        <div class="contact-item">
+                            <span class="icon">📞</span>
+                            <a href="tel:${provider.contact1}" class="contact-link">${provider.contact1}</a>
+                        </div>
+                        ${provider.contact2 && provider.contact2 !== provider.contact1 ? `
+                        <div class="contact-item">
+                            <span class="icon">📱</span>
+                            <a href="tel:${provider.contact2}" class="contact-link">${provider.contact2}</a>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="address">
+                        <span class="icon">📍</span>
+                        <span>${provider.address}</span>
+                    </div>
+                    
+                    <div class="reference">
+                        Referred by: ${provider.reference}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Event listeners
+        homeSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchFromHome(homeSearchInput.value);
+            }
+        });
+
+        resultsSearchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+    </script>
+</body>
+</html>

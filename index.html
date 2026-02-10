@@ -181,13 +181,20 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .results-search {
-            display: flex;
+        .filter-section {
+            display: grid;
+            grid-template-columns: 1fr auto;
             gap: 10px;
             margin-bottom: 15px;
         }
 
-        .results-search input {
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-row input {
             flex: 1;
             padding: 12px 15px;
             font-size: 1em;
@@ -196,8 +203,29 @@
             outline: none;
         }
 
-        .results-search input:focus {
+        .filter-row input:focus {
             border-color: #667eea;
+        }
+
+        .filter-row select {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-row select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .area-dropdown {
+            min-width: 200px;
         }
 
         .clear-btn {
@@ -209,6 +237,7 @@
             font-size: 1em;
             cursor: pointer;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .clear-btn:hover {
@@ -219,10 +248,23 @@
             color: #333;
             font-size: 1.1em;
             font-weight: 600;
+            margin-top: 10px;
         }
 
         .search-term {
             color: #667eea;
+        }
+
+        .filter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            margin-left: 10px;
         }
 
         .service-card {
@@ -315,6 +357,11 @@
             margin-bottom: 10px;
         }
 
+        .address-highlight {
+            font-weight: 600;
+            color: #333;
+        }
+
         .reference {
             color: #888;
             font-size: 0.9em;
@@ -389,8 +436,17 @@
                 font-size: 0.95em;
             }
 
-            .results-search {
+            .filter-section {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-row {
                 flex-direction: column;
+            }
+
+            .filter-row input,
+            .filter-row select {
+                width: 100%;
             }
 
             .clear-btn {
@@ -498,15 +554,20 @@
             </button>
 
             <div class="results-header">
-                <div class="results-search">
-                    <input 
-                        type="text" 
-                        id="resultsSearchInput" 
-                        placeholder="🔍 Refine your search..."
-                        autocomplete="off"
-                    >
-                    <button class="clear-btn" onclick="clearAndShowAll()">
-                        ✖️ Clear
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <input 
+                            type="text" 
+                            id="resultsSearchInput" 
+                            placeholder="🔍 Search services..."
+                            autocomplete="off"
+                        >
+                        <select id="areaFilter" class="area-dropdown">
+                            <option value="">📍 All Areas</option>
+                        </select>
+                    </div>
+                    <button class="clear-btn" onclick="clearAllFilters()">
+                        ✖️ Clear All
                     </button>
                 </div>
                 <div class="results-count" id="resultsCount"></div>
@@ -602,8 +663,30 @@
         const resultsView = document.getElementById('resultsView');
         const homeSearchInput = document.getElementById('homeSearchInput');
         const resultsSearchInput = document.getElementById('resultsSearchInput');
+        const areaFilter = document.getElementById('areaFilter');
         const resultsContainer = document.getElementById('resultsContainer');
         const resultsCount = document.getElementById('resultsCount');
+
+        // Extract unique areas from service providers
+        function populateAreaDropdown() {
+            const areas = new Set();
+            serviceProviders.forEach(provider => {
+                const area = provider.address.trim();
+                if (area) {
+                    areas.add(area);
+                }
+            });
+
+            const sortedAreas = Array.from(areas).sort();
+            areaFilter.innerHTML = '<option value="">📍 All Areas</option>';
+
+            sortedAreas.forEach(area => {
+                const option = document.createElement('option');
+                option.value = area;
+                option.textContent = area;
+                areaFilter.appendChild(option);
+            });
+        }
 
         function goToHome() {
             homeView.style.display = 'block';
@@ -615,28 +698,31 @@
         function goToResults() {
             homeView.style.display = 'none';
             resultsView.style.display = 'block';
+            populateAreaDropdown();
             window.scrollTo(0, 0);
         }
 
         function searchFromHome(query) {
             resultsSearchInput.value = query;
+            areaFilter.value = '';
             goToResults();
-            performSearch(query);
+            performSearch();
         }
 
-        function clearAndShowAll() {
+        function clearAllFilters() {
             resultsSearchInput.value = '';
-            performSearch('');
+            areaFilter.value = '';
+            performSearch();
         }
 
-        function performSearch(query) {
-            const searchTerm = query.toLowerCase().trim();
-            let filtered;
+        function performSearch() {
+            const searchTerm = resultsSearchInput.value.toLowerCase().trim();
+            const selectedArea = areaFilter.value;
 
-            if (!searchTerm) {
-                filtered = serviceProviders;
-            } else {
-                filtered = serviceProviders.filter(provider => {
+            let filtered = serviceProviders;
+
+            if (searchTerm) {
+                filtered = filtered.filter(provider => {
                     return (
                         provider.name.toLowerCase().includes(searchTerm) ||
                         provider.job1.toLowerCase().includes(searchTerm) ||
@@ -647,24 +733,29 @@
                 });
             }
 
-            displayResults(filtered, query);
+            if (selectedArea) {
+                filtered = filtered.filter(provider => {
+                    return provider.address === selectedArea;
+                });
+            }
+
+            displayResults(filtered, searchTerm, selectedArea);
         }
 
-        function displayResults(providers, query) {
+        function displayResults(providers, searchTerm, selectedArea) {
             if (providers.length === 0) {
                 resultsCount.innerHTML = `No results found`;
                 resultsContainer.innerHTML = `
                     <div class="no-results">
                         <h3>😕 No Results Found</h3>
-                        <p>We couldn't find any service providers matching "${query}"</p>
+                        <p>We couldn't find any service providers matching your criteria</p>
                         <div class="suggestions">
-                            <h4>Try searching for:</h4>
+                            <h4>Try:</h4>
                             <div class="suggestion-tags">
-                                <span class="suggestion-tag" onclick="performSearch('Plumbing'); resultsSearchInput.value='Plumbing';">Plumbing</span>
-                                <span class="suggestion-tag" onclick="performSearch('Electrician'); resultsSearchInput.value='Electrician';">Electrician</span>
-                                <span class="suggestion-tag" onclick="performSearch('MSEB Work'); resultsSearchInput.value='MSEB Work';">MSEB Work</span>
-                                <span class="suggestion-tag" onclick="performSearch('Tiles'); resultsSearchInput.value='Tiles';">Tiles</span>
-                                <span class="suggestion-tag" onclick="performSearch('AC'); resultsSearchInput.value='AC';">AC Repair</span>
+                                <span class="suggestion-tag" onclick="clearAllFilters()">Clear Filters</span>
+                                <span class="suggestion-tag" onclick="resultsSearchInput.value='Plumbing'; areaFilter.value=''; performSearch();">Plumbing</span>
+                                <span class="suggestion-tag" onclick="resultsSearchInput.value='Electrician'; areaFilter.value=''; performSearch();">Electrician</span>
+                                <span class="suggestion-tag" onclick="resultsSearchInput.value=''; performSearch();">View All</span>
                             </div>
                         </div>
                     </div>
@@ -672,7 +763,17 @@
                 return;
             }
 
-            resultsCount.innerHTML = `Found <strong>${providers.length}</strong> service provider${providers.length > 1 ? 's' : ''} ${query ? `for <span class="search-term">"${query}"</span>` : ''}`;
+            let countText = `Found <strong>${providers.length}</strong> service provider${providers.length > 1 ? 's' : ''}`;
+            
+            if (searchTerm) {
+                countText += ` for <span class="search-term">"${searchTerm}"</span>`;
+            }
+            
+            if (selectedArea) {
+                countText += ` <span class="filter-badge">📍 ${selectedArea}</span>`;
+            }
+
+            resultsCount.innerHTML = countText;
 
             resultsContainer.innerHTML = providers.map(provider => `
                 <div class="service-card">
@@ -702,7 +803,7 @@
                     
                     <div class="address">
                         <span class="icon">📍</span>
-                        <span>${provider.address}</span>
+                        <span class="${selectedArea === provider.address ? 'address-highlight' : ''}">${provider.address}</span>
                     </div>
                     
                     <div class="reference">
@@ -712,15 +813,18 @@
             `).join('');
         }
 
-        // Event listeners
         homeSearchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 searchFromHome(homeSearchInput.value);
             }
         });
 
-        resultsSearchInput.addEventListener('input', (e) => {
-            performSearch(e.target.value);
+        resultsSearchInput.addEventListener('input', () => {
+            performSearch();
+        });
+
+        areaFilter.addEventListener('change', () => {
+            performSearch();
         });
     </script>
 </body>

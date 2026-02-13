@@ -1,833 +1,1132 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Directory</title>
+    <title>Seva — Local Service Directory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --indigo: #4338CA;
+            --indigo-light: #6366F1;
+            --violet: #7C3AED;
+            --bg: #F1F5F9;
+            --surface: #FFFFFF;
+            --text: #0F172A;
+            --muted: #64748B;
+            --border: #E2E8F0;
+            --chip-bg: #EEF2FF;
+            --chip-text: #4338CA;
+            --success: #059669;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-lg: 0 8px 32px rgba(67,56,202,0.12), 0 2px 8px rgba(0,0,0,0.06);
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 1200px;
+        /* ── NOISE TEXTURE OVERLAY ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── ANIMATED BACKGROUND BLOBS ── */
+        .bg-blobs {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            animation: blobFloat 12s ease-in-out infinite;
+        }
+
+        .blob-1 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #C7D2FE, #818CF8);
+            top: -150px; left: -100px;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #DDD6FE, #A78BFA);
+            bottom: -100px; right: -80px;
+            animation-delay: -4s;
+        }
+
+        .blob-3 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, #BAE6FD, #7DD3FC);
+            top: 40%; left: 60%;
+            animation-delay: -8s;
+        }
+
+        @keyframes blobFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -20px) scale(1.03); }
+            66% { transform: translate(-15px, 15px) scale(0.97); }
+        }
+
+        /* ── LAYOUT ── */
+        .page {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: none;
+            flex-direction: column;
+        }
+
+        .page.active { display: flex; }
+
+        /* ── HOME PAGE ── */
+        #homePage {
+            align-items: center;
+            justify-content: flex-start;
+            padding: 60px 20px 80px;
+        }
+
+        .hero {
+            text-align: center;
+            max-width: 680px;
+            width: 100%;
+            margin-bottom: 48px;
+            animation: heroIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes heroIn {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--indigo);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            letter-spacing: 0.02em;
+        }
+
+        .hero-badge span { font-size: 1em; }
+
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            background: linear-gradient(135deg, var(--indigo), var(--violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 1.1rem;
+            font-weight: 300;
+            line-height: 1.6;
+            max-width: 480px;
             margin: 0 auto;
         }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            padding-top: 20px;
-        }
-
-        .header h1 {
-            font-size: 2.8em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.95;
-        }
-
-        /* Home View Styles */
-        #homeView {
-            display: block;
-        }
-
-        #resultsView {
-            display: none;
-        }
-
-        .search-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
-        }
-
-        .search-section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-            text-align: center;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .search-input {
+        /* ── UNIFIED SEARCH BAR ── */
+        .search-wrapper {
             width: 100%;
-            padding: 18px 50px 18px 20px;
-            font-size: 1.1em;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            outline: none;
-            transition: all 0.3s;
+            max-width: 680px;
+            margin-bottom: 56px;
+            animation: heroIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
         }
 
-        .search-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.5em;
-            color: #999;
-        }
-
-        .divider {
+        .search-bar {
+            background: var(--surface);
+            border-radius: 100px;
+            box-shadow: var(--shadow-lg);
+            border: 1.5px solid var(--border);
             display: flex;
             align-items: center;
-            text-align: center;
-            margin: 30px 0;
-            color: #999;
+            padding: 6px 6px 6px 20px;
+            gap: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .divider::before,
-        .divider::after {
-            content: '';
+        .search-bar:focus-within {
+            border-color: var(--indigo-light);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1), var(--shadow-lg);
+        }
+
+        .search-bar .search-icon {
+            color: var(--muted);
+            flex-shrink: 0;
+            display: flex;
+        }
+
+        .search-bar input {
             flex: 1;
-            border-bottom: 2px solid #e0e0e0;
+            border: none;
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            color: var(--text);
+            background: transparent;
+            min-width: 0;
         }
 
-        .divider span {
-            padding: 0 15px;
-            font-weight: 600;
+        .search-bar input::placeholder { color: #94A3B8; }
+
+        .search-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .location-select-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .location-select-wrapper svg { color: var(--indigo); flex-shrink: 0; }
+
+        .location-select-wrapper select {
+            border: none;
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+            background: transparent;
+            cursor: pointer;
+            max-width: 140px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, var(--indigo), var(--violet));
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 12px 24px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(67,56,202,0.3);
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(67,56,202,0.4);
+        }
+
+        /* ── CATEGORIES SECTION ── */
+        .categories-wrapper {
+            width: 100%;
+            max-width: 960px;
+            animation: heroIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        }
+
+        .section-label {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 20px;
+            text-align: center;
         }
 
         .categories-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 12px;
         }
 
-        .category-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 18px 15px;
-            border-radius: 15px;
-            font-size: 1em;
-            font-weight: 600;
+        .cat-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 16px;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .cat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--indigo), var(--violet));
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
+        .cat-card:hover {
+            border-color: var(--indigo-light);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 32px rgba(67,56,202,0.15);
+        }
+
+        .cat-card:hover::before { opacity: 1; }
+
+        .cat-card:hover .cat-icon,
+        .cat-card:hover .cat-name,
+        .cat-card:hover .cat-arrow { color: white; }
+
+        .cat-icon {
+            font-size: 1.8rem;
+            position: relative;
+            z-index: 1;
+            transition: color 0.25s;
+            line-height: 1;
+        }
+
+        .cat-name {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text);
+            position: relative;
+            z-index: 1;
+            transition: color 0.25s;
+            line-height: 1.3;
+        }
+
+        .cat-arrow {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            color: var(--border);
+            font-size: 0.9rem;
+            z-index: 1;
+            transition: color 0.25s, transform 0.25s;
+        }
+
+        .cat-card:hover .cat-arrow {
+            transform: translate(2px, -2px);
+        }
+
+        /* ── RESULTS PAGE ── */
+        #resultsPage {
+            flex-direction: column;
+            padding: 0;
+        }
+
+        .results-topbar {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
-        .category-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .category-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .icon-large {
-            font-size: 1.4em;
-        }
-
-        /* Results View Styles */
         .back-btn {
-            background: white;
-            color: #667eea;
-            border: 2px solid white;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: 600;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            border-radius: 100px;
+            padding: 9px 18px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
             cursor: pointer;
-            margin-bottom: 20px;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            gap: 6px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            box-shadow: var(--shadow);
         }
 
         .back-btn:hover {
-            background: #f0f0f0;
-            transform: translateX(-3px);
+            background: var(--indigo);
+            border-color: var(--indigo);
+            color: white;
+            transform: translateX(-2px);
         }
 
-        .results-header {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .filter-section {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .filter-row {
+        .results-search-bar {
+            flex: 1;
+            min-width: 240px;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 100px;
             display: flex;
-            gap: 10px;
             align-items: center;
+            padding: 8px 16px;
+            gap: 8px;
+            transition: border-color 0.2s;
         }
 
-        .filter-row input {
-            flex: 1;
-            padding: 12px 15px;
-            font-size: 1em;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            outline: none;
-        }
-
-        .filter-row input:focus {
-            border-color: #667eea;
-        }
-
-        .filter-row select {
-            flex: 1;
-            padding: 12px 15px;
-            font-size: 1em;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            outline: none;
+        .results-search-bar:focus-within {
+            border-color: var(--indigo-light);
             background: white;
+        }
+
+        .results-search-bar input {
+            border: none;
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text);
+            background: transparent;
+            width: 100%;
+        }
+
+        .results-search-bar input::placeholder { color: #94A3B8; }
+
+        .area-filter-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 100px;
+            padding: 8px 16px;
+            box-shadow: var(--shadow);
+            transition: border-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .area-filter-wrapper:focus-within {
+            border-color: var(--indigo-light);
+        }
+
+        .area-filter-wrapper svg { color: var(--indigo); flex-shrink: 0; }
+
+        .area-filter-wrapper select {
+            border: none;
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text);
+            background: transparent;
             cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .filter-row select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .area-dropdown {
-            min-width: 200px;
+            appearance: none;
+            -webkit-appearance: none;
+            max-width: 160px;
         }
 
         .clear-btn {
-            background: #f0f0f0;
-            color: #666;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 1em;
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--muted);
+            border-radius: 100px;
+            padding: 9px 16px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
             cursor: pointer;
-            font-weight: 600;
-            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
         }
 
         .clear-btn:hover {
-            background: #e0e0e0;
+            background: #FEE2E2;
+            border-color: #FCA5A5;
+            color: #DC2626;
         }
 
-        .results-count {
-            color: #333;
-            font-size: 1.1em;
-            font-weight: 600;
-            margin-top: 10px;
+        /* ── RESULTS BODY ── */
+        .results-body {
+            padding: 28px 24px 60px;
+            max-width: 960px;
+            width: 100%;
+            margin: 0 auto;
         }
 
-        .search-term {
-            color: #667eea;
+        .results-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .filter-badge {
+        .results-meta h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .results-meta h2 span {
+            color: var(--indigo);
+        }
+
+        .results-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            background: #667eea;
-            color: white;
+            background: var(--chip-bg);
+            color: var(--chip-text);
+            border: 1px solid #C7D2FE;
             padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.9em;
-            margin-left: 10px;
-        }
-
-        .service-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .service-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .service-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .service-name {
-            font-size: 1.4em;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .sr-number {
-            background: #667eea;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
-
-        .jobs-container {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-
-        .job-tag {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
+            border-radius: 100px;
+            font-size: 0.8rem;
             font-weight: 500;
         }
 
-        .contact-section {
+        /* ── SERVICE CARDS ── */
+        .cards-list { display: flex; flex-direction: column; gap: 14px; }
+
+        .service-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: start;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+            position: relative;
+            overflow: hidden;
         }
 
-        .contact-item {
+        .service-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--indigo), var(--violet));
+            border-radius: 4px 0 0 4px;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .service-card:hover {
+            border-color: #C7D2FE;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(67,56,202,0.1), var(--shadow);
+        }
+
+        .card-left { min-width: 0; }
+
+        .card-header {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
-        .contact-link {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.05em;
-        }
-
-        .contact-link:hover {
-            text-decoration: underline;
-        }
-
-        .icon {
-            font-size: 1.2em;
-        }
-
-        .address {
-            color: #666;
+        .provider-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--chip-bg), #DDD6FE);
             display: flex;
-            align-items: start;
-            gap: 8px;
-            margin-bottom: 10px;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--indigo);
+            flex-shrink: 0;
+            border: 1px solid #C7D2FE;
         }
 
-        .address-highlight {
+        .provider-info { min-width: 0; }
+
+        .provider-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .provider-ref {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .jobs-row {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .job-chip {
+            background: var(--chip-bg);
+            color: var(--chip-text);
+            border: 1px solid #C7D2FE;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .card-footer svg { flex-shrink: 0; color: var(--indigo); }
+
+        .address-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .address-text.highlight {
             font-weight: 600;
-            color: #333;
+            color: var(--text);
         }
 
-        .reference {
-            color: #888;
-            font-size: 0.9em;
-            font-style: italic;
+        /* ── CONTACT BUTTONS ── */
+        .card-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
-        .no-results {
-            background: white;
-            border-radius: 15px;
-            padding: 50px 30px;
+        .call-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: #F0FDF4;
+            border: 1.5px solid #BBF7D0;
+            color: var(--success);
+            padding: 9px 14px;
+            border-radius: 100px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .call-btn:hover {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(5,150,105,0.25);
+        }
+
+        .sr-badge {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 100px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            font-family: 'Syne', sans-serif;
+        }
+
+        /* ── NO RESULTS ── */
+        .no-results {
+            text-align: center;
+            padding: 80px 20px;
+            animation: cardIn 0.4s ease both;
+        }
+
+        .no-results-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            display: block;
         }
 
         .no-results h3 {
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 1.6em;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
         }
 
         .no-results p {
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 1.05em;
+            color: var(--muted);
+            margin-bottom: 28px;
         }
 
-        .suggestions {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 10px;
-        }
-
-        .suggestions h4 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .suggestion-tags {
+        .suggestions-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
             justify-content: center;
         }
 
-        .suggestion-tag {
-            background: #667eea;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
+        .suggestion-pill {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
 
-        .suggestion-tag:hover {
-            background: #5568d3;
-            transform: scale(1.05);
+        .suggestion-pill:hover {
+            background: var(--indigo);
+            border-color: var(--indigo);
+            color: white;
         }
 
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2em;
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            #homePage { padding: 40px 16px 60px; }
+            .categories-grid { grid-template-columns: repeat(2, 1fr); }
+
+            .results-topbar {
+                padding: 12px 16px;
+                gap: 10px;
             }
 
-            .categories-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
+            .area-filter-wrapper { flex: 1; }
+            .area-filter-wrapper select { max-width: 100%; width: 100%; }
 
-            .category-btn {
-                padding: 15px 10px;
-                font-size: 0.95em;
-            }
+            .results-body { padding: 20px 16px 60px; }
 
-            .filter-section {
+            .service-card {
                 grid-template-columns: 1fr;
             }
 
-            .filter-row {
-                flex-direction: column;
+            .card-right {
+                flex-direction: row;
+                flex-wrap: wrap;
             }
 
-            .filter-row input,
-            .filter-row select {
-                width: 100%;
+            .search-bar {
+                border-radius: 16px;
+                padding: 10px 10px 10px 16px;
+                flex-wrap: wrap;
             }
 
-            .clear-btn {
+            .search-divider { display: none; }
+            .location-select-wrapper { padding: 0; }
+
+            .search-btn {
                 width: 100%;
+                justify-content: center;
+                padding: 12px;
             }
         }
     </style>
 </head>
-
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔧 Service Directory</h1>
-            <p>Find Trusted Service Providers</p>
-        </div>
 
-        <!-- HOME VIEW -->
-        <div id="homeView">
-            <div class="search-card">
-                <div class="search-section">
-                    <h2>🔍 Search by Service Name</h2>
-                    <div class="search-input-wrapper">
-                        <input type="text" id="homeSearchInput" class="search-input"
-                            placeholder="Type any service (e.g., Plumbing, Electrician, Tiles...)" autocomplete="off">
-                        <span class="search-icon">🔍</span>
-                    </div>
-                </div>
+<div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+</div>
 
-                <div class="divider">
-                    <span>OR</span>
-                </div>
+<!-- ══════════ HOME PAGE ══════════ -->
+<div class="page active" id="homePage">
 
-                <div class="categories-section">
-                    <h2>🏠 Browse by Category</h2>
-                    <div class="categories-grid">
-                        <button class="category-btn" onclick="searchFromHome('Plumbing')">
-                            <span class="icon-large">🚰</span>
-                            <span>Plumbing</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Electrician')">
-                            <span class="icon-large">💡</span>
-                            <span>Electrician</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('MSEB Work')">
-                            <span class="icon-large">⚡</span>
-                            <span>MSEB Work</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Tiles')">
-                            <span class="icon-large">🔲</span>
-                            <span>Tiles</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('LCD Projector')">
-                            <span class="icon-large">📽️</span>
-                            <span>LCD Projector</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Curtain')">
-                            <span class="icon-large">🪟</span>
-                            <span>Curtain Bracket</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Geysor')">
-                            <span class="icon-large">♨️</span>
-                            <span>Geysor</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Electric')">
-                            <span class="icon-large">🔌</span>
-                            <span>Electric</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('AC')">
-                            <span class="icon-large">❄️</span>
-                            <span>AC Repair</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Fridge')">
-                            <span class="icon-large">🧊</span>
-                            <span>Fridge Repair</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Aluminium')">
-                            <span class="icon-large">🪟</span>
-                            <span>Aluminium Work</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Tree')">
-                            <span class="icon-large">🌳</span>
-                            <span>Tree Cutting</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('Maintenance')">
-                            <span class="icon-large">🔧</span>
-                            <span>Home Maintenance</span>
-                        </button>
-                        <button class="category-btn" onclick="searchFromHome('')">
-                            <span class="icon-large">📋</span>
-                            <span>View All</span>
-                        </button>
-                    </div>
-                </div>
+    <div class="hero">
+        <div class="hero-badge"><span>📍</span> Local Service Directory</div>
+        <h1>Find the right person<br>for the <em>right job</em></h1>
+        <p>Trusted local service providers at your fingertips. Search by service or browse by category.</p>
+    </div>
+
+    <!-- UNIFIED SEARCH BAR -->
+    <div class="search-wrapper">
+        <div class="search-bar">
+            <div class="search-icon">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
             </div>
-        </div>
-
-        <!-- RESULTS VIEW -->
-        <div id="resultsView">
-            <button class="back-btn" onclick="goToHome()">
-                ⬅️ Back to Home
-            </button>
-
-            <div class="results-header">
-                <div class="filter-section">
-                    <div class="filter-row">
-                        <input type="text" id="resultsSearchInput" placeholder="🔍 Search services..."
-                            autocomplete="off">
-                        <select id="areaFilter" class="area-dropdown">
-                            <option value="">📍 All Areas</option>
-                        </select>
-                    </div>
-                    <button class="clear-btn" onclick="clearAllFilters()">
-                        ✖️ Clear All
-                    </button>
-                </div>
-                <div class="results-count" id="resultsCount"></div>
+            <input type="text" id="homeSearchInput" placeholder="Search services — Plumbing, Electrician, Tiles…" autocomplete="off">
+            <div class="search-divider"></div>
+            <div class="location-select-wrapper">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                    <circle cx="12" cy="9" r="2.5"/>
+                </svg>
+                <select id="homeAreaSelect">
+                    <option value="">All Areas</option>
+                </select>
             </div>
-
-            <div id="resultsContainer"></div>
+            <button class="search-btn" onclick="triggerHomeSearch()">Search</button>
         </div>
     </div>
 
-    <script>
-        // Service providers data
-        const serviceProviders = [
-            {
-                srNo: 1,
-                name: "Mahesh Wadaskar",
-                job1: "MSEB Work",
-                job2: "Plumbing",
-                job3: "LCD Projector",
-                contact1: "1234567891",
-                contact2: "1234567891",
-                address: "MG Road",
-                reference: "Bhavna"
-            },
-            {
-                srNo: 2,
-                name: "Kharat Patil",
-                job1: "MSEB Work",
-                job2: "Plumbing",
-                job3: "Curtain Bracket",
-                contact1: "1234567891",
-                contact2: "1234567891",
-                address: "Gajanan Colony",
-                reference: "Bhavna"
-            },
-            {
-                srNo: 3,
-                name: "Ganesh Ambekar",
-                job1: "LCD Projector",
-                job2: "Plumbing",
-                job3: "Geysor",
-                contact1: "1234567891",
-                contact2: "1234567891",
-                address: "Gajanan Colony",
-                reference: "Bhavna"
-            },
-            {
-                srNo: 4,
-                name: "Laxman Bhapkar",
-                job1: "Digging and Cutting of Trees",
-                job2: "Plumbing",
-                job3: "Curtain Bracket",
-                contact1: "1234567891",
-                contact2: "1234567891",
-                address: "Chetak Ghoda, Jai Vishwabharti Colony",
-                reference: "Bhavna"
-            },
-            {
-                srNo: 5,
-                name: "Prakash Dhangar Mistri",
-                job1: "Tiles",
-                job2: "Plumbing",
-                job3: "Electrician",
-                contact1: "1234567891",
-                contact2: "1234567891",
-                address: "Gajanan Colony",
-                reference: "Bhavna"
-            },
-            {
-                srNo: 6,
-                name: "Ramesh Shinde",
-                job1: "Maintenance of Home / Tiles",
-                job2: "Plumbing",
-                job3: "Electric",
-                contact1: "1234567891",
-                contact2: "1234567891",
-                address: "Jay Bhavani Nagar, N-4",
-                reference: "Bhavna"
-            },
-            {
-                srNo: 7,
-                name: "Vetal",
-                job1: "Repairing of Mixer, AC, Electric Motor, Fridge, Cooler",
-                job2: "Plumbing",
-                job3: "Aluminium Windows",
-                contact1: "1234567891",
-                contact2: "1234567891",
-                address: "Gajanan Colony",
-                reference: "Bhavna"
-            }
-        ];
+    <!-- CATEGORIES -->
+    <div class="categories-wrapper">
+        <div class="section-label">Browse by category</div>
+        <div class="categories-grid">
+            <div class="cat-card" onclick="searchFromHome('Plumbing')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">🚰</div>
+                <div class="cat-name">Plumbing</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Electrician')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">💡</div>
+                <div class="cat-name">Electrician</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('MSEB Work')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">⚡</div>
+                <div class="cat-name">MSEB Work</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Tiles')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">🔲</div>
+                <div class="cat-name">Tiles</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('LCD Projector')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">📽️</div>
+                <div class="cat-name">LCD Projector</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Curtain')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">🪟</div>
+                <div class="cat-name">Curtain Bracket</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Geysor')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">♨️</div>
+                <div class="cat-name">Geysor</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Electric')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">🔌</div>
+                <div class="cat-name">Electric</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('AC')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">❄️</div>
+                <div class="cat-name">AC Repair</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Fridge')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">🧊</div>
+                <div class="cat-name">Fridge Repair</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Aluminium')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">🪟</div>
+                <div class="cat-name">Aluminium Work</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Tree')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">🌳</div>
+                <div class="cat-name">Tree Cutting</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('Maintenance')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">🔧</div>
+                <div class="cat-name">Home Maintenance</div>
+            </div>
+            <div class="cat-card" onclick="searchFromHome('')">
+                <div class="cat-arrow">↗</div>
+                <div class="cat-icon">📋</div>
+                <div class="cat-name">View All</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        const homeView = document.getElementById('homeView');
-        const resultsView = document.getElementById('resultsView');
-        const homeSearchInput = document.getElementById('homeSearchInput');
-        const resultsSearchInput = document.getElementById('resultsSearchInput');
-        const areaFilter = document.getElementById('areaFilter');
-        const resultsContainer = document.getElementById('resultsContainer');
-        const resultsCount = document.getElementById('resultsCount');
+<!-- ══════════ RESULTS PAGE ══════════ -->
+<div class="page" id="resultsPage">
 
-        // Extract unique areas from service providers
-        function populateAreaDropdown() {
-            const areas = new Set();
-            serviceProviders.forEach(provider => {
-                if (provider.address) {
-                    const area = provider.address.trim();
-                    if (area) {
-                        areas.add(area);
-                    }
-                }
-            });
+    <div class="results-topbar">
+        <button class="back-btn" onclick="goToHome()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
+            </svg>
+            Home
+        </button>
 
-            const sortedAreas = Array.from(areas).sort();
-            areaFilter.innerHTML = '<option value="">📍 All Areas</option>';
+        <div class="results-search-bar">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input type="text" id="resultsSearchInput" placeholder="Refine by service or name…" autocomplete="off">
+        </div>
 
-            sortedAreas.forEach(area => {
-                const option = document.createElement('option');
-                option.value = area;
-                option.textContent = area;
-                areaFilter.appendChild(option);
-            });
+        <div class="area-filter-wrapper">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            <select id="areaFilter">
+                <option value="">All Areas</option>
+            </select>
+        </div>
+
+        <button class="clear-btn" onclick="clearAllFilters()">Clear</button>
+    </div>
+
+    <div class="results-body">
+        <div class="results-meta">
+            <h2 id="resultsHeading">All Providers</h2>
+            <div class="results-chips" id="resultsChips"></div>
+        </div>
+        <div class="cards-list" id="resultsContainer"></div>
+    </div>
+</div>
+
+<script>
+    const serviceProviders = [
+        { srNo: 1, name: "Mahesh Wadaskar",       job1: "MSEB Work",                                    job2: "Plumbing", job3: "LCD Projector",   contact1: "1234567891", contact2: "1234567891", address: "MG Road",                               reference: "Bhavna" },
+        { srNo: 2, name: "Kharat Patil",           job1: "MSEB Work",                                    job2: "Plumbing", job3: "Curtain Bracket", contact1: "1234567891", contact2: "1234567891", address: "Gajanan Colony",                         reference: "Bhavna" },
+        { srNo: 3, name: "Ganesh Ambekar",         job1: "LCD Projector",                                job2: "Plumbing", job3: "Geysor",          contact1: "1234567891", contact2: "1234567891", address: "Gajanan Colony",                         reference: "Bhavna" },
+        { srNo: 4, name: "Laxman Bhapkar",         job1: "Digging and Cutting of Trees",                 job2: "Plumbing", job3: "Curtain Bracket", contact1: "1234567891", contact2: "1234567891", address: "Chetak Ghoda, Jai Vishwabharti Colony",  reference: "Bhavna" },
+        { srNo: 5, name: "Prakash Dhangar Mistri", job1: "Tiles",                                        job2: "Plumbing", job3: "Electrician",     contact1: "1234567891", contact2: "1234567891", address: "Gajanan Colony",                         reference: "Bhavna" },
+        { srNo: 6, name: "Ramesh Shinde",          job1: "Maintenance of Home / Tiles",                  job2: "Plumbing", job3: "Electric",        contact1: "1234567891", contact2: "1234567891", address: "Jay Bhavani Nagar, N-4",                 reference: "Bhavna" },
+        { srNo: 7, name: "Vetal",                  job1: "Repairing of Mixer, AC, Electric Motor, Fridge, Cooler", job2: "Plumbing", job3: "Aluminium Windows", contact1: "1234567891", contact2: "1234567891", address: "Gajanan Colony",            reference: "Bhavna" }
+    ];
+
+    // ── DOM refs ──
+    const homePage           = document.getElementById('homePage');
+    const resultsPage        = document.getElementById('resultsPage');
+    const homeSearchInput    = document.getElementById('homeSearchInput');
+    const homeAreaSelect     = document.getElementById('homeAreaSelect');
+    const resultsSearchInput = document.getElementById('resultsSearchInput');
+    const areaFilter         = document.getElementById('areaFilter');
+    const resultsContainer   = document.getElementById('resultsContainer');
+    const resultsHeading     = document.getElementById('resultsHeading');
+    const resultsChips       = document.getElementById('resultsChips');
+
+    // ── Populate area dropdowns ──
+    function getUniqueAreas() {
+        return [...new Set(serviceProviders.map(p => p.address.trim()))].sort();
+    }
+
+    function populateAreaDropdowns() {
+        const areas = getUniqueAreas();
+        const opts = '<option value="">All Areas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join('');
+        homeAreaSelect.innerHTML = opts;
+        areaFilter.innerHTML = opts;
+    }
+
+    populateAreaDropdowns();
+
+    // ── Navigation ──
+    function showPage(pageEl) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        pageEl.classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function goToHome() {
+        showPage(homePage);
+        homeSearchInput.value = '';
+        homeAreaSelect.value = '';
+    }
+
+    function searchFromHome(query) {
+        resultsSearchInput.value = query;
+        areaFilter.value = '';
+        showPage(resultsPage);
+        performSearch();
+    }
+
+    function triggerHomeSearch() {
+        const q    = homeSearchInput.value.trim();
+        const area = homeAreaSelect.value;
+        resultsSearchInput.value = q;
+        areaFilter.value = area;
+        showPage(resultsPage);
+        performSearch();
+    }
+
+    // ── Search logic ──
+    function performSearch() {
+        const term     = resultsSearchInput.value.toLowerCase().trim();
+        const selArea  = areaFilter.value;
+
+        let filtered = serviceProviders;
+
+        if (term) {
+            filtered = filtered.filter(p =>
+                p.name.toLowerCase().includes(term) ||
+                p.job1.toLowerCase().includes(term) ||
+                p.job2.toLowerCase().includes(term) ||
+                p.job3.toLowerCase().includes(term) ||
+                p.address.toLowerCase().includes(term)
+            );
         }
 
-        function goToHome() {
-            homeView.style.display = 'block';
-            resultsView.style.display = 'none';
-            homeSearchInput.value = '';
-            window.scrollTo(0, 0);
+        if (selArea) {
+            filtered = filtered.filter(p => p.address === selArea);
         }
 
-        function goToResults() {
-            homeView.style.display = 'none';
-            resultsView.style.display = 'block';
-            populateAreaDropdown();
-            window.scrollTo(0, 0);
+        renderResults(filtered, term, selArea);
+    }
+
+    // ── Render ──
+    function getInitials(name) {
+        return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    }
+
+    function renderResults(providers, term, selArea) {
+        // Heading
+        if (term) {
+            resultsHeading.innerHTML = `Results for <span>"${term}"</span>`;
+        } else {
+            resultsHeading.innerHTML = `All Providers`;
         }
 
-        function searchFromHome(query) {
-            resultsSearchInput.value = query;
-            areaFilter.value = '';
-            goToResults();
-            performSearch();
+        // Chips
+        let chipsHTML = `<span class="chip">${providers.length} found</span>`;
+        if (selArea) chipsHTML += `<span class="chip">📍 ${selArea}</span>`;
+        resultsChips.innerHTML = chipsHTML;
+
+        if (providers.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <h3>No providers found</h3>
+                    <p>Try adjusting your search or clearing the area filter.</p>
+                    <div class="suggestions-row">
+                        <span class="suggestion-pill" onclick="clearAllFilters()">Clear all filters</span>
+                        <span class="suggestion-pill" onclick="resultsSearchInput.value='Plumbing'; areaFilter.value=''; performSearch()">Plumbing</span>
+                        <span class="suggestion-pill" onclick="resultsSearchInput.value='Electrician'; areaFilter.value=''; performSearch()">Electrician</span>
+                        <span class="suggestion-pill" onclick="resultsSearchInput.value=''; areaFilter.value=''; performSearch()">View All</span>
+                    </div>
+                </div>`;
+            return;
         }
 
-        function clearAllFilters() {
-            resultsSearchInput.value = '';
-            areaFilter.value = '';
-            performSearch();
-        }
-
-        function performSearch() {
-            const searchTerm = resultsSearchInput.value.toLowerCase().trim();
-            const selectedArea = areaFilter.value;
-
-            let filtered = serviceProviders;
-
-            if (searchTerm) {
-                filtered = filtered.filter(provider => {
-                    const name = provider.name ? provider.name.toLowerCase() : '';
-                    const job1 = provider.job1 ? provider.job1.toLowerCase() : '';
-                    const job2 = provider.job2 ? provider.job2.toLowerCase() : '';
-                    const job3 = provider.job3 ? provider.job3.toLowerCase() : '';
-                    const address = provider.address ? provider.address.toLowerCase() : '';
-
-                    return (
-                        name.includes(searchTerm) ||
-                        job1.includes(searchTerm) ||
-                        job2.includes(searchTerm) ||
-                        job3.includes(searchTerm) ||
-                        address.includes(searchTerm)
-                    );
-                });
-            }
-
-            if (selectedArea) {
-                filtered = filtered.filter(provider => {
-                    return provider.address === selectedArea;
-                });
-            }
-
-            displayResults(filtered, searchTerm, selectedArea);
-        }
-
-        function displayResults(providers, searchTerm, selectedArea) {
-            if (providers.length === 0) {
-                resultsCount.innerHTML = `No results found`;
-                resultsContainer.innerHTML = `
-                    <div class="no-results">
-                        <h3>😕 No Results Found</h3>
-                        <p>We couldn't find any service providers matching your criteria</p>
-                        <div class="suggestions">
-                            <h4>Try:</h4>
-                            <div class="suggestion-tags">
-                                <span class="suggestion-tag" onclick="clearAllFilters()">Clear Filters</span>
-                                <span class="suggestion-tag" onclick="resultsSearchInput.value='Plumbing'; areaFilter.value=''; performSearch();">Plumbing</span>
-                                <span class="suggestion-tag" onclick="resultsSearchInput.value='Electrician'; areaFilter.value=''; performSearch();">Electrician</span>
-                                <span class="suggestion-tag" onclick="resultsSearchInput.value=''; performSearch();">View All</span>
-                            </div>
+        resultsContainer.innerHTML = providers.map((p, i) => {
+            const isDual = p.contact2 && p.contact2 !== p.contact1;
+            return `
+            <div class="service-card" style="animation-delay: ${i * 0.06}s">
+                <div class="card-left">
+                    <div class="card-header">
+                        <div class="provider-avatar">${getInitials(p.name)}</div>
+                        <div class="provider-info">
+                            <div class="provider-name">${p.name}</div>
+                            <div class="provider-ref">Ref: ${p.reference}</div>
                         </div>
                     </div>
-                `;
-                return;
-            }
-
-            let countText = `Found <strong>${providers.length}</strong> service provider${providers.length > 1 ? 's' : ''}`;
-
-            if (searchTerm) {
-                countText += ` for <span class="search-term">"${searchTerm}"</span>`;
-            }
-
-            if (selectedArea) {
-                countText += ` <span class="filter-badge">📍 ${selectedArea}</span>`;
-            }
-
-            resultsCount.innerHTML = countText;
-
-            resultsContainer.innerHTML = providers.map(provider => `
-                <div class="service-card">
-                    <div class="service-header">
-                        <div class="service-name">${provider.name}</div>
-                        <div class="sr-number">#${provider.srNo}</div>
+                    <div class="jobs-row">
+                        ${[p.job1, p.job2, p.job3].filter(Boolean).map(j => `<span class="job-chip">${j}</span>`).join('')}
                     </div>
-                    
-                    <div class="jobs-container">
-                        ${provider.job1 ? `<span class="job-tag">🔧 ${provider.job1}</span>` : ''}
-                        ${provider.job2 ? `<span class="job-tag">🔧 ${provider.job2}</span>` : ''}
-                        ${provider.job3 ? `<span class="job-tag">🔧 ${provider.job3}</span>` : ''}
-                    </div>
-                    
-                    <div class="contact-section">
-                        <div class="contact-item">
-                            <span class="icon">📞</span>
-                            <a href="tel:${provider.contact1}" class="contact-link">${provider.contact1}</a>
-                        </div>
-                        ${provider.contact2 && provider.contact2 !== provider.contact1 ? `
-                        <div class="contact-item">
-                            <span class="icon">📱</span>
-                            <a href="tel:${provider.contact2}" class="contact-link">${provider.contact2}</a>
-                        </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div class="address">
-                        <span class="icon">📍</span>
-                        <span class="${selectedArea === provider.address ? 'address-highlight' : ''}">${provider.address}</span>
-                    </div>
-                    
-                    <div class="reference">
-                        Referred by: ${provider.reference}
+                    <div class="card-footer">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                            <circle cx="12" cy="9" r="2.5"/>
+                        </svg>
+                        <span class="address-text ${selArea === p.address ? 'highlight' : ''}">${p.address}</span>
                     </div>
                 </div>
-            `).join('');
-        }
+                <div class="card-right">
+                    <div class="sr-badge">#${p.srNo}</div>
+                    <a href="tel:${p.contact1}" class="call-btn">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .93h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                        </svg>
+                        ${p.contact1}
+                    </a>
+                    ${isDual ? `
+                    <a href="tel:${p.contact2}" class="call-btn">
+                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .93h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                        </svg>
+                        ${p.contact2}
+                    </a>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
 
-        homeSearchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchFromHome(homeSearchInput.value);
-            }
-        });
+    function clearAllFilters() {
+        resultsSearchInput.value = '';
+        areaFilter.value = '';
+        performSearch();
+    }
 
-        resultsSearchInput.addEventListener('input', () => {
-            performSearch();
-        });
+    // ── Event listeners ──
+    homeSearchInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') triggerHomeSearch();
+    });
 
-        areaFilter.addEventListener('change', () => {
-            performSearch();
-        });
-    </script>
+    resultsSearchInput.addEventListener('input', performSearch);
+    areaFilter.addEventListener('change', performSearch);
+</script>
 </body>
-
 </html>

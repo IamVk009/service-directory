@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seva — Local Service Directory</title>
+    <title>SambhajinagarCare — Local Service Directory</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
     <style>
         /* ══════════════════════════════════════
@@ -123,18 +123,14 @@
         }
 
         /* ══════════════════════════════════════
-           THEME TOGGLE — top-right fixed
+           THEME TOGGLE (lives inside header)
         ══════════════════════════════════════ */
         .theme-toggle {
-            position: fixed;
-            top: 16px;
-            right: 20px;
-            z-index: 999;
-            background: var(--surface);
+            background: var(--surface-2);
             border: 1.5px solid var(--border);
             border-radius: 10px;
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -143,8 +139,9 @@
             transition: background var(--transition), border-color var(--transition),
                         box-shadow var(--transition), transform 0.15s ease;
             user-select: none;
-            position: fixed;
             color: var(--muted);
+            position: relative; /* for tooltip positioning */
+            flex-shrink: 0;
         }
 
         .theme-toggle:hover {
@@ -156,7 +153,6 @@
 
         .theme-toggle:active { transform: scale(0.94); }
 
-        /* Tooltip below the button */
         .toggle-tooltip {
             position: absolute;
             top: calc(100% + 10px);
@@ -173,6 +169,7 @@
             opacity: 0;
             transform: translateY(-4px);
             transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 1000;
         }
 
         .toggle-tooltip::before {
@@ -198,17 +195,18 @@
             min-height: 100vh;
             display: none;
             flex-direction: column;
-            opacity: 0;
-            transform: translateY(12px);
         }
 
         .page.active {
             display: flex;
-            animation: pageEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: pageEnter 0.35s ease forwards;
         }
 
+        /* Opacity-ONLY — no transform, so no stacking context is created.
+           This is what was trapping the dropdown behind categories. */
         @keyframes pageEnter {
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to   { opacity: 1; }
         }
 
         /* ══════════════════════════════════════
@@ -225,12 +223,12 @@
             max-width: 640px;
             width: 100%;
             margin-bottom: 40px;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+            animation: fadeIn 0.5s ease 0.05s both;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(28px); }
-            to   { opacity: 1; transform: translateY(0); }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
         }
 
         .hero-badge {
@@ -284,7 +282,10 @@
             width: 100%;
             max-width: 660px;
             margin-bottom: 52px;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+            animation: fadeIn 0.5s ease 0.12s both;
+            position: relative;
+            z-index: 500; /* must beat everything including header */
+            isolation: isolate;
         }
 
         .search-bar {
@@ -391,7 +392,9 @@
         .categories-wrapper {
             width: 100%;
             max-width: 940px;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+            animation: fadeIn 0.5s ease 0.2s both;
+            position: relative;
+            z-index: 1;
         }
 
         .section-label {
@@ -452,7 +455,7 @@
 
         .cat-icon, .cat-name, .cat-arrow {
             position: relative;
-            z-index: 1;
+            z-index: 2; /* above the ::after overlay within the card */
             transition: color 0.25s ease;
         }
 
@@ -491,7 +494,7 @@
             border-bottom: 1px solid var(--border);
             padding: 14px 24px;
             position: sticky;
-            top: 0;
+            top: 60px; /* sit directly below the 60px fixed header */
             z-index: 100;
             display: flex;
             align-items: center;
@@ -908,7 +911,7 @@
             border: 1.5px solid var(--border);
             border-radius: 18px;
             box-shadow: 0 16px 48px rgba(0,0,0,0.14), 0 4px 16px rgba(67,56,202,0.1);
-            z-index: 200;
+            z-index: 9999;
             overflow: hidden;
             opacity: 0;
             transform: translateY(-8px) scale(0.98);
@@ -1036,10 +1039,168 @@
         }
 
         /* ══════════════════════════════════════
+           HEADER
+        ══════════════════════════════════════ */
+        .site-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 500;
+            background: var(--topbar-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            justify-content: space-between;
+            transition: background var(--transition), border-color var(--transition);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .logo-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--indigo), var(--violet));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(67,56,202,0.35);
+        }
+
+        .logo-mark svg { color: white; }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            transition: color var(--transition);
+        }
+
+        .logo-text span {
+            color: var(--indigo-light);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-count {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--muted);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 100px;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        /* push page content below fixed header */
+        #homePage    { padding-top: 90px; }
+        #resultsPage { padding-top: 60px; }
+        .site-footer {
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 28px 24px;
+            transition: background var(--transition), border-color var(--transition);
+        }
+
+        .footer-inner {
+            max-width: 940px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-brand .logo-mark {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+        }
+
+        .footer-brand .logo-text {
+            font-size: 1rem;
+        }
+
+        .footer-tagline {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .footer-stat {
+            text-align: center;
+        }
+
+        .footer-stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--indigo-light);
+            line-height: 1;
+        }
+
+        .footer-stat-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-top: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+        }
+
+        .footer-divider {
+            width: 1px;
+            height: 32px;
+            background: var(--border);
+        }
+
+        .footer-copy {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-align: right;
+        }
+
+        /* push page content below fixed header */
+        #homePage    { padding-top: 90px; }
+        #resultsPage { padding-top: 60px; }
+
+        /* ══════════════════════════════════════
            RESPONSIVE
         ══════════════════════════════════════ */
         @media (max-width: 640px) {
-            #homePage { padding: 56px 16px 60px; }
+            #homePage { padding-top: 80px; padding-left: 16px; padding-right: 16px; padding-bottom: 60px; }
 
             .categories-grid { grid-template-columns: repeat(2, 1fr); }
 
@@ -1060,7 +1221,10 @@
             .service-card { grid-template-columns: 1fr; }
             .card-right { flex-direction: row; flex-wrap: wrap; align-items: center; }
 
-            .theme-toggle { top: 12px; right: 12px; width: 36px; height: 36px; }
+            .header-count { display: none; }
+            .footer-links { gap: 12px; }
+            .footer-copy { font-size: 0.7rem; }
+            .footer-inner { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -1073,28 +1237,39 @@
     <div class="blob blob-3"></div>
 </div>
 
-<!-- THEME TOGGLE — fixed top-right, icon-only style like screenshot -->
-<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" id="themeToggleBtn">
-    <span id="themeIcon">
-        <!-- Moon icon shown in light mode (click to go dark) -->
-        <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-        <!-- Sun icon shown in dark mode (click to go light) -->
-        <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/>
-            <line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/>
-            <line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-    </span>
-    <span class="toggle-tooltip" id="themeTooltip">Switch to Dark Mode</span>
-</button>
+<!-- ══════════════════════════════════════
+     SITE HEADER (fixed, always visible)
+══════════════════════════════════════ -->
+<header class="site-header">
+    <div class="header-logo" onclick="goToHome()">
+        <div class="logo-mark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+        </div>
+        <span class="logo-text">Sambhajinagar<span>Care</span></span>
+    </div>
+
+    <div class="header-right">
+        <span class="header-count" id="headerCount">237 Providers</span>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" id="themeToggleBtn">
+            <span id="themeIcon">
+                <svg id="iconMoon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+                <svg id="iconSun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+            </span>
+            <span class="toggle-tooltip" id="themeTooltip">Switch to Dark Mode</span>
+        </button>
+    </div>
+</header>
 
 <!-- ══════════════════════════════════════
      HOME PAGE
@@ -1257,6 +1432,48 @@
         <div class="cards-list" id="resultsContainer"></div>
     </div>
 </div>
+
+<!-- ══════════════════════════════════════
+     SITE FOOTER
+══════════════════════════════════════ -->
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <div class="logo-mark" style="width:28px;height:28px;border-radius:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+            </div>
+            <div>
+                <div class="logo-text" style="font-size:1rem">Sambhajinagar<span>Care</span></div>
+                <div class="footer-tagline">Your local service directory</div>
+            </div>
+        </div>
+
+        <div class="footer-links">
+            <div class="footer-stat">
+                <div class="footer-stat-num" id="footerProviderCount">237</div>
+                <div class="footer-stat-label">Providers</div>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-stat">
+                <div class="footer-stat-num" id="footerAreaCount">67</div>
+                <div class="footer-stat-label">Areas</div>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-stat">
+                <div class="footer-stat-num">Free</div>
+                <div class="footer-stat-label">Always</div>
+            </div>
+        </div>
+
+        <div class="footer-copy">
+            Made with ❤️ for the community<br>
+            <span style="opacity:0.6">© 2025 SambhajinagarCare Directory</span>
+        </div>
+    </div>
+</footer>
 
 <script>
     /* ── DATA ── */
@@ -1535,11 +1752,16 @@
 
     /* ── AREA DROPDOWNS ── */
     function populateAreas() {
-        const areas = [...new Set(serviceProviders.map(p => p.address.trim()))].sort();
+        const areas = [...new Set(serviceProviders.map(p => p.address.trim()).filter(Boolean))].sort();
         const opts  = '<option value="">All Areas</option>' +
                       areas.map(a => `<option value="${a}">${a}</option>`).join('');
         homeAreaSelect.innerHTML = opts;
         areaFilter.innerHTML     = opts;
+        // Sync live counts to header + footer
+        const el = (id) => document.getElementById(id);
+        if (el('headerCount'))        el('headerCount').textContent        = serviceProviders.length + ' Providers';
+        if (el('footerProviderCount')) el('footerProviderCount').textContent = serviceProviders.length;
+        if (el('footerAreaCount'))    el('footerAreaCount').textContent    = areas.length;
     }
 
     populateAreas();

@@ -1,30 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seva — Local Service Directory</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
     <style>
+        /* ══════════════════════════════════════
+           THEME TOKENS
+        ══════════════════════════════════════ */
         :root {
-            --indigo: #4338CA;
+            --indigo:       #4338CA;
             --indigo-light: #6366F1;
-            --violet: #7C3AED;
-            --bg: #F1F5F9;
-            --surface: #FFFFFF;
-            --text: #0F172A;
-            --muted: #64748B;
-            --border: #E2E8F0;
-            --chip-bg: #EEF2FF;
-            --chip-text: #4338CA;
-            --success: #059669;
-            --radius: 16px;
-            --radius-sm: 10px;
-            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
-            --shadow-lg: 0 8px 32px rgba(67,56,202,0.12), 0 2px 8px rgba(0,0,0,0.06);
+            --violet:       #7C3AED;
+            --radius:       16px;
+            --transition:   0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        [data-theme="light"] {
+            --bg:         #F1F5F9;
+            --surface:    #FFFFFF;
+            --surface-2:  #F8FAFC;
+            --border:     #E2E8F0;
+            --text:       #0F172A;
+            --text-2:     #334155;
+            --muted:      #64748B;
+            --chip-bg:    #EEF2FF;
+            --chip-text:  #4338CA;
+            --chip-border:#C7D2FE;
+            --success-bg: #F0FDF4;
+            --success-border: #BBF7D0;
+            --success:    #059669;
+            --topbar-bg:  rgba(255,255,255,0.88);
+            --shadow:     0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-lg:  0 8px 32px rgba(67,56,202,0.12), 0 2px 8px rgba(0,0,0,0.06);
+            --blob-1: #C7D2FE, #818CF8;
+            --avatar-bg:  #EEF2FF;
+            --avatar-border: #C7D2FE;
+            --avatar-text: #4338CA;
+        }
+
+        [data-theme="dark"] {
+            --bg:         #0B0F1A;
+            --surface:    #141928;
+            --surface-2:  #1C2236;
+            --border:     #2A3349;
+            --text:       #F1F5F9;
+            --text-2:     #CBD5E1;
+            --muted:      #64748B;
+            --chip-bg:    #1E2A4A;
+            --chip-text:  #A5B4FC;
+            --chip-border:#3730A3;
+            --success-bg: #052E16;
+            --success-border:#166534;
+            --success:    #34D399;
+            --topbar-bg:  rgba(11,15,26,0.9);
+            --shadow:     0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+            --shadow-lg:  0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+            --avatar-bg:  #1E2A4A;
+            --avatar-border: #3730A3;
+            --avatar-text: #A5B4FC;
+        }
+
+        /* ══════════════════════════════════════
+           RESET & BASE
+        ══════════════════════════════════════ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
 
         body {
             font-family: 'DM Sans', sans-serif;
@@ -32,16 +75,7 @@
             color: var(--text);
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
-        }
-
-        /* ── NOISE TEXTURE OVERLAY ── */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-            pointer-events: none;
-            z-index: 0;
+            transition: background var(--transition), color var(--transition);
         }
 
         /* ── ANIMATED BACKGROUND BLOBS ── */
@@ -56,95 +90,176 @@
         .blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.35;
-            animation: blobFloat 12s ease-in-out infinite;
+            filter: blur(90px);
+            animation: blobFloat 14s ease-in-out infinite;
+            transition: opacity var(--transition);
         }
+
+        [data-theme="light"] .blob { opacity: 0.4; }
+        [data-theme="dark"]  .blob { opacity: 0.18; }
 
         .blob-1 {
-            width: 500px; height: 500px;
+            width: 520px; height: 520px;
             background: radial-gradient(circle, #C7D2FE, #818CF8);
-            top: -150px; left: -100px;
-            animation-delay: 0s;
+            top: -160px; left: -120px;
         }
-
         .blob-2 {
-            width: 400px; height: 400px;
+            width: 420px; height: 420px;
             background: radial-gradient(circle, #DDD6FE, #A78BFA);
-            bottom: -100px; right: -80px;
-            animation-delay: -4s;
+            bottom: -110px; right: -90px;
+            animation-delay: -5s;
         }
-
         .blob-3 {
-            width: 300px; height: 300px;
+            width: 320px; height: 320px;
             background: radial-gradient(circle, #BAE6FD, #7DD3FC);
-            top: 40%; left: 60%;
-            animation-delay: -8s;
+            top: 38%; left: 58%;
+            animation-delay: -9s;
         }
 
         @keyframes blobFloat {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(20px, -20px) scale(1.03); }
-            66% { transform: translate(-15px, 15px) scale(0.97); }
+            0%,100% { transform: translate(0,0) scale(1); }
+            33%      { transform: translate(22px,-22px) scale(1.04); }
+            66%      { transform: translate(-16px,16px) scale(0.96); }
         }
 
-        /* ── LAYOUT ── */
+        /* ══════════════════════════════════════
+           THEME TOGGLE — top-right fixed
+        ══════════════════════════════════════ */
+        .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 20px;
+            z-index: 999;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition),
+                        box-shadow var(--transition), transform 0.15s ease;
+            user-select: none;
+            position: fixed;
+            color: var(--muted);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--indigo-light);
+            color: var(--indigo-light);
+            transform: scale(1.08);
+            box-shadow: 0 4px 16px rgba(99,102,241,0.18);
+        }
+
+        .theme-toggle:active { transform: scale(0.94); }
+
+        /* Tooltip below the button */
+        .toggle-tooltip {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--text);
+            color: var(--bg);
+            font-family: "DM Sans", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            padding: 6px 10px;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .toggle-tooltip::before {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            right: 12px;
+            border: 5px solid transparent;
+            border-bottom-color: var(--text);
+        }
+
+        .theme-toggle:hover .toggle-tooltip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ══════════════════════════════════════
+           PAGE LAYOUT
+        ══════════════════════════════════════ */
         .page {
             position: relative;
             z-index: 1;
             min-height: 100vh;
             display: none;
             flex-direction: column;
+            opacity: 0;
+            transform: translateY(12px);
         }
 
-        .page.active { display: flex; }
+        .page.active {
+            display: flex;
+            animation: pageEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
 
-        /* ── HOME PAGE ── */
+        @keyframes pageEnter {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ══════════════════════════════════════
+           HOME PAGE
+        ══════════════════════════════════════ */
         #homePage {
             align-items: center;
-            justify-content: flex-start;
-            padding: 60px 20px 80px;
+            padding: 72px 20px 80px;
         }
 
+        /* ── Hero ── */
         .hero {
             text-align: center;
-            max-width: 680px;
+            max-width: 640px;
             width: 100%;
-            margin-bottom: 48px;
-            animation: heroIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+            margin-bottom: 40px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
         }
 
-        @keyframes heroIn {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             background: var(--surface);
             border: 1px solid var(--border);
-            padding: 6px 14px;
+            padding: 6px 16px;
             border-radius: 100px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--indigo);
-            margin-bottom: 24px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--indigo-light);
+            margin-bottom: 22px;
             box-shadow: var(--shadow);
-            letter-spacing: 0.02em;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            transition: background var(--transition), border-color var(--transition);
         }
-
-        .hero-badge span { font-size: 1em; }
 
         .hero h1 {
             font-family: 'Syne', sans-serif;
-            font-size: clamp(2.4rem, 6vw, 4rem);
+            font-size: clamp(2.2rem, 5.5vw, 3.8rem);
             font-weight: 800;
             line-height: 1.1;
             letter-spacing: -0.03em;
             color: var(--text);
             margin-bottom: 16px;
+            transition: color var(--transition);
         }
 
         .hero h1 em {
@@ -157,19 +272,19 @@
 
         .hero p {
             color: var(--muted);
-            font-size: 1.1rem;
-            font-weight: 300;
-            line-height: 1.6;
-            max-width: 480px;
+            font-size: 1.05rem;
+            font-weight: 400;
+            line-height: 1.65;
+            max-width: 460px;
             margin: 0 auto;
         }
 
-        /* ── UNIFIED SEARCH BAR ── */
+        /* ── Unified Search Bar ── */
         .search-wrapper {
             width: 100%;
-            max-width: 680px;
-            margin-bottom: 56px;
-            animation: heroIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+            max-width: 660px;
+            margin-bottom: 52px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
         }
 
         .search-bar {
@@ -179,201 +294,210 @@
             border: 1.5px solid var(--border);
             display: flex;
             align-items: center;
-            padding: 6px 6px 6px 20px;
-            gap: 8px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            padding: 7px 7px 7px 22px;
+            gap: 10px;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease,
+                        background var(--transition);
         }
 
         .search-bar:focus-within {
             border-color: var(--indigo-light);
-            box-shadow: 0 0 0 4px rgba(99,102,241,0.1), var(--shadow-lg);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.12), var(--shadow-lg);
         }
 
-        .search-bar .search-icon {
+        .search-bar .s-icon {
             color: var(--muted);
             flex-shrink: 0;
             display: flex;
+            align-items: center;
+            transition: color 0.2s;
         }
+
+        .search-bar:focus-within .s-icon { color: var(--indigo-light); }
 
         .search-bar input {
             flex: 1;
             border: none;
             outline: none;
             font-family: 'DM Sans', sans-serif;
-            font-size: 1rem;
+            font-size: 0.98rem;
             color: var(--text);
             background: transparent;
             min-width: 0;
+            transition: color var(--transition);
         }
 
-        .search-bar input::placeholder { color: #94A3B8; }
+        .search-bar input::placeholder { color: var(--muted); opacity: 0.7; }
 
         .search-divider {
             width: 1px;
-            height: 24px;
+            height: 22px;
             background: var(--border);
             flex-shrink: 0;
+            transition: background var(--transition);
         }
 
-        .location-select-wrapper {
+        .loc-wrapper {
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 0 12px;
-            cursor: pointer;
+            padding: 0 10px;
             flex-shrink: 0;
         }
 
-        .location-select-wrapper svg { color: var(--indigo); flex-shrink: 0; }
+        .loc-wrapper svg { color: var(--indigo-light); flex-shrink: 0; }
 
-        .location-select-wrapper select {
+        .loc-wrapper select {
             border: none;
             outline: none;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             font-weight: 500;
             color: var(--text);
             background: transparent;
             cursor: pointer;
-            max-width: 140px;
+            max-width: 130px;
             appearance: none;
             -webkit-appearance: none;
+            transition: color var(--transition);
         }
 
         .search-btn {
-            background: linear-gradient(135deg, var(--indigo), var(--violet));
+            background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
             color: white;
             border: none;
             border-radius: 100px;
-            padding: 12px 24px;
+            padding: 11px 26px;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 500;
+            font-size: 0.92rem;
+            font-weight: 600;
             cursor: pointer;
             flex-shrink: 0;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(67,56,202,0.3);
+            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
+                        box-shadow 0.2s ease;
+            box-shadow: 0 2px 10px rgba(67,56,202,0.35);
             white-space: nowrap;
+            letter-spacing: 0.01em;
         }
 
         .search-btn:hover {
-            transform: scale(1.03);
-            box-shadow: 0 4px 16px rgba(67,56,202,0.4);
+            transform: scale(1.05);
+            box-shadow: 0 4px 18px rgba(67,56,202,0.45);
         }
 
-        /* ── CATEGORIES SECTION ── */
+        .search-btn:active { transform: scale(0.98); }
+
+        /* ── Categories ── */
         .categories-wrapper {
             width: 100%;
-            max-width: 960px;
-            animation: heroIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+            max-width: 940px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
         }
 
         .section-label {
             font-family: 'Syne', sans-serif;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             font-weight: 700;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
             color: var(--muted);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             text-align: center;
         }
 
         .categories-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+            gap: 11px;
         }
 
         .cat-card {
             background: var(--surface);
             border: 1.5px solid var(--border);
             border-radius: var(--radius);
-            padding: 18px 16px;
+            padding: 18px 16px 16px;
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
+                        box-shadow 0.25s ease,
+                        border-color 0.25s ease,
+                        background var(--transition);
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 10px;
+            gap: 9px;
             position: relative;
             overflow: hidden;
             box-shadow: var(--shadow);
         }
 
-        .cat-card::before {
+        .cat-card::after {
             content: '';
             position: absolute;
             inset: 0;
             background: linear-gradient(135deg, var(--indigo), var(--violet));
             opacity: 0;
-            transition: opacity 0.25s;
+            transition: opacity 0.25s ease;
+            border-radius: inherit;
         }
 
         .cat-card:hover {
             border-color: var(--indigo-light);
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 12px 32px rgba(67,56,202,0.15);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 14px 36px rgba(67,56,202,0.18);
         }
 
-        .cat-card:hover::before { opacity: 1; }
+        .cat-card:hover::after { opacity: 1; }
 
-        .cat-card:hover .cat-icon,
-        .cat-card:hover .cat-name,
-        .cat-card:hover .cat-arrow { color: white; }
+        .cat-card:active { transform: translateY(-2px) scale(0.99); }
 
-        .cat-icon {
-            font-size: 1.8rem;
+        .cat-icon, .cat-name, .cat-arrow {
             position: relative;
             z-index: 1;
-            transition: color 0.25s;
-            line-height: 1;
+            transition: color 0.25s ease;
         }
+
+        .cat-icon { font-size: 1.75rem; line-height: 1; }
 
         .cat-name {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 500;
-            color: var(--text);
-            position: relative;
-            z-index: 1;
-            transition: color 0.25s;
+            color: var(--text-2);
             line-height: 1.3;
         }
 
         .cat-arrow {
-            position: absolute;
-            top: 14px;
-            right: 14px;
+            position: absolute !important;
+            top: 13px; right: 13px;
             color: var(--border);
-            font-size: 0.9rem;
-            z-index: 1;
-            transition: color 0.25s, transform 0.25s;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: color 0.25s ease, transform 0.25s ease !important;
         }
 
-        .cat-card:hover .cat-arrow {
-            transform: translate(2px, -2px);
-        }
+        .cat-card:hover .cat-icon { filter: none; }
+        .cat-card:hover .cat-name  { color: white; }
+        .cat-card:hover .cat-arrow { color: rgba(255,255,255,0.7); transform: translate(2px,-2px); }
 
-        /* ── RESULTS PAGE ── */
-        #resultsPage {
-            flex-direction: column;
-            padding: 0;
-        }
+        /* ══════════════════════════════════════
+           RESULTS PAGE
+        ══════════════════════════════════════ */
+        #resultsPage { flex-direction: column; }
 
+        /* ── Sticky topbar ── */
         .results-topbar {
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: var(--topbar-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border-bottom: 1px solid var(--border);
-            padding: 16px 24px;
+            padding: 14px 24px;
             position: sticky;
             top: 0;
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             flex-wrap: wrap;
+            transition: background var(--transition), border-color var(--transition);
         }
 
         .back-btn {
@@ -383,14 +507,15 @@
             border-radius: 100px;
             padding: 9px 18px;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 500;
+            font-size: 0.86rem;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s;
             flex-shrink: 0;
+            transition: background 0.2s ease, border-color 0.2s ease,
+                        color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: var(--shadow);
         }
 
@@ -398,28 +523,32 @@
             background: var(--indigo);
             border-color: var(--indigo);
             color: white;
-            transform: translateX(-2px);
+            transform: translateX(-3px);
+            box-shadow: 0 4px 14px rgba(67,56,202,0.3);
         }
 
-        .results-search-bar {
+        .back-btn:active { transform: translateX(-1px); }
+
+        .res-search-bar {
             flex: 1;
-            min-width: 240px;
-            background: var(--bg);
+            min-width: 200px;
+            background: var(--surface-2);
             border: 1.5px solid var(--border);
             border-radius: 100px;
             display: flex;
             align-items: center;
-            padding: 8px 16px;
+            padding: 9px 16px;
             gap: 8px;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .results-search-bar:focus-within {
+        .res-search-bar:focus-within {
             border-color: var(--indigo-light);
-            background: white;
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
         }
 
-        .results-search-bar input {
+        .res-search-bar input {
             border: none;
             outline: none;
             font-family: 'DM Sans', sans-serif;
@@ -427,41 +556,44 @@
             color: var(--text);
             background: transparent;
             width: 100%;
+            transition: color var(--transition);
         }
 
-        .results-search-bar input::placeholder { color: #94A3B8; }
+        .res-search-bar input::placeholder { color: var(--muted); opacity: 0.7; }
 
-        .area-filter-wrapper {
+        .area-filter {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             background: var(--surface);
             border: 1.5px solid var(--border);
             border-radius: 100px;
-            padding: 8px 16px;
+            padding: 9px 16px;
             box-shadow: var(--shadow);
-            transition: border-color 0.2s;
             flex-shrink: 0;
+            transition: border-color 0.2s ease, background var(--transition);
         }
 
-        .area-filter-wrapper:focus-within {
+        .area-filter:focus-within {
             border-color: var(--indigo-light);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
         }
 
-        .area-filter-wrapper svg { color: var(--indigo); flex-shrink: 0; }
+        .area-filter svg { color: var(--indigo-light); flex-shrink: 0; }
 
-        .area-filter-wrapper select {
+        .area-filter select {
             border: none;
             outline: none;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             font-weight: 500;
             color: var(--text);
             background: transparent;
             cursor: pointer;
             appearance: none;
             -webkit-appearance: none;
-            max-width: 160px;
+            max-width: 155px;
+            transition: color var(--transition);
         }
 
         .clear-btn {
@@ -471,10 +603,11 @@
             border-radius: 100px;
             padding: 9px 16px;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
             flex-shrink: 0;
+            transition: all 0.2s ease;
         }
 
         .clear-btn:hover {
@@ -483,10 +616,10 @@
             color: #DC2626;
         }
 
-        /* ── RESULTS BODY ── */
+        /* ── Results body ── */
         .results-body {
-            padding: 28px 24px 60px;
-            max-width: 960px;
+            padding: 28px 24px 70px;
+            max-width: 940px;
             width: 100%;
             margin: 0 auto;
         }
@@ -495,27 +628,22 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
             flex-wrap: wrap;
             gap: 10px;
         }
 
         .results-meta h2 {
             font-family: 'Syne', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.45rem;
             font-weight: 700;
             color: var(--text);
+            transition: color var(--transition);
         }
 
-        .results-meta h2 span {
-            color: var(--indigo);
-        }
+        .results-meta h2 span { color: var(--indigo-light); }
 
-        .results-chips {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+        .chips-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
         .chip {
             display: inline-flex;
@@ -523,113 +651,130 @@
             gap: 5px;
             background: var(--chip-bg);
             color: var(--chip-text);
-            border: 1px solid #C7D2FE;
-            padding: 5px 12px;
+            border: 1px solid var(--chip-border);
+            padding: 5px 13px;
             border-radius: 100px;
-            font-size: 0.8rem;
-            font-weight: 500;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: background var(--transition), color var(--transition);
         }
 
-        /* ── SERVICE CARDS ── */
-        .cards-list { display: flex; flex-direction: column; gap: 14px; }
+        /* ── Service Cards ── */
+        .cards-list { display: flex; flex-direction: column; gap: 13px; }
 
         .service-card {
             background: var(--surface);
             border: 1.5px solid var(--border);
             border-radius: var(--radius);
-            padding: 24px;
+            padding: 22px 22px 22px 26px;
             box-shadow: var(--shadow);
             display: grid;
             grid-template-columns: 1fr auto;
-            gap: 16px;
+            gap: 20px;
             align-items: start;
-            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-            animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
             position: relative;
             overflow: hidden;
+            animation: cardIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+            transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
+                        box-shadow 0.25s ease, border-color 0.25s ease,
+                        background var(--transition);
         }
 
+        /* Left accent bar */
         .service-card::before {
             content: '';
             position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
+            left: 0; top: 0; bottom: 0;
             width: 4px;
             background: linear-gradient(180deg, var(--indigo), var(--violet));
             border-radius: 4px 0 0 4px;
         }
 
-        @keyframes cardIn {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .service-card:hover {
-            border-color: #C7D2FE;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(67,56,202,0.1), var(--shadow);
+            border-color: var(--chip-border);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 36px rgba(67,56,202,0.1), var(--shadow);
         }
 
-        .card-left { min-width: 0; }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
+        /* ── Provider Avatar ── */
         .card-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             margin-bottom: 14px;
         }
 
         .provider-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--chip-bg), #DDD6FE);
+            width: 46px;
+            height: 46px;
+            min-width: 46px;
+            border-radius: 13px;
+            background: var(--avatar-bg);
+            border: 1.5px solid var(--avatar-border);
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+            transition: background var(--transition), border-color var(--transition);
+        }
+
+        .provider-avatar span {
             font-family: 'Syne', sans-serif;
-            font-size: 1.1rem;
+            font-size: 0.88rem;
             font-weight: 800;
-            color: var(--indigo);
-            flex-shrink: 0;
-            border: 1px solid #C7D2FE;
+            color: var(--avatar-text);
+            line-height: 1;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            transition: color var(--transition);
         }
 
         .provider-info { min-width: 0; }
 
         .provider-name {
             font-family: 'Syne', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            transition: color var(--transition);
         }
 
         .provider-ref {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: var(--muted);
-            margin-top: 2px;
+            margin-top: 3px;
+            font-weight: 400;
         }
 
         .jobs-row {
             display: flex;
-            gap: 7px;
+            gap: 6px;
             flex-wrap: wrap;
-            margin-bottom: 16px;
+            margin-bottom: 15px;
         }
 
         .job-chip {
             background: var(--chip-bg);
             color: var(--chip-text);
-            border: 1px solid #C7D2FE;
-            padding: 4px 12px;
+            border: 1px solid var(--chip-border);
+            padding: 4px 11px;
             border-radius: 100px;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             font-weight: 500;
             letter-spacing: 0.01em;
+            transition: background var(--transition), color var(--transition);
         }
 
         .card-footer {
@@ -637,10 +782,10 @@
             align-items: center;
             gap: 6px;
             color: var(--muted);
-            font-size: 0.82rem;
+            font-size: 0.81rem;
         }
 
-        .card-footer svg { flex-shrink: 0; color: var(--indigo); }
+        .card-footer svg { flex-shrink: 0; color: var(--indigo-light); }
 
         .address-text {
             white-space: nowrap;
@@ -648,81 +793,77 @@
             text-overflow: ellipsis;
         }
 
-        .address-text.highlight {
-            font-weight: 600;
-            color: var(--text);
-        }
+        .address-text.highlight { font-weight: 600; color: var(--text); }
 
-        /* ── CONTACT BUTTONS ── */
+        /* ── Call Buttons ── */
         .card-right {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            align-items: flex-end;
             flex-shrink: 0;
+        }
+
+        .sr-badge {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-family: 'Syne', sans-serif;
+            letter-spacing: 0.04em;
+            transition: background var(--transition), border-color var(--transition);
         }
 
         .call-btn {
             display: flex;
             align-items: center;
             gap: 7px;
-            background: #F0FDF4;
-            border: 1.5px solid #BBF7D0;
+            background: var(--success-bg);
+            border: 1.5px solid var(--success-border);
             color: var(--success);
-            padding: 9px 14px;
+            padding: 9px 16px;
             border-radius: 100px;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             font-weight: 600;
             text-decoration: none;
-            transition: all 0.2s;
             white-space: nowrap;
+            transition: background 0.2s ease, border-color 0.2s ease,
+                        color 0.2s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
+                        box-shadow 0.2s ease;
         }
 
         .call-btn:hover {
             background: var(--success);
             border-color: var(--success);
             color: white;
-            transform: scale(1.03);
-            box-shadow: 0 4px 12px rgba(5,150,105,0.25);
+            transform: scale(1.05);
+            box-shadow: 0 4px 14px rgba(5,150,105,0.3);
         }
 
-        .sr-badge {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            color: var(--muted);
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 100px;
-            text-align: center;
-            font-family: 'Syne', sans-serif;
-        }
+        .call-btn:active { transform: scale(0.98); }
 
-        /* ── NO RESULTS ── */
+        /* ── No Results ── */
         .no-results {
             text-align: center;
             padding: 80px 20px;
             animation: cardIn 0.4s ease both;
         }
 
-        .no-results-icon {
-            font-size: 4rem;
-            margin-bottom: 16px;
-            display: block;
-        }
+        .no-results-icon { font-size: 3.5rem; display: block; margin-bottom: 16px; }
 
         .no-results h3 {
             font-family: 'Syne', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 700;
             color: var(--text);
             margin-bottom: 8px;
         }
 
-        .no-results p {
-            color: var(--muted);
-            margin-bottom: 28px;
-        }
+        .no-results p { color: var(--muted); margin-bottom: 28px; }
 
         .suggestions-row {
             display: flex;
@@ -731,106 +872,272 @@
             justify-content: center;
         }
 
-        .suggestion-pill {
+        .sug-pill {
             background: var(--surface);
             border: 1.5px solid var(--border);
-            color: var(--text);
+            color: var(--text-2);
             padding: 8px 16px;
             border-radius: 100px;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.2s ease, border-color 0.2s ease,
+                        color 0.2s ease, transform 0.2s ease;
         }
 
-        .suggestion-pill:hover {
+        .sug-pill:hover {
             background: var(--indigo);
             border-color: var(--indigo);
             color: white;
+            transform: scale(1.04);
         }
 
-        /* ── RESPONSIVE ── */
+        /* ══════════════════════════════════════
+           AUTOCOMPLETE DROPDOWN
+        ══════════════════════════════════════ */
+        .search-wrapper {
+            position: relative; /* anchor for dropdown */
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 18px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.14), 0 4px 16px rgba(67,56,202,0.1);
+            z-index: 200;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.98);
+            pointer-events: none;
+            transition: opacity 0.2s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.2s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        .autocomplete-dropdown.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .ac-section-label {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 14px 18px 8px;
+        }
+
+        .ac-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            border-radius: 0;
+        }
+
+        .ac-item:hover,
+        .ac-item.active {
+            background: var(--chip-bg);
+        }
+
+        .ac-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--chip-bg);
+            border: 1px solid var(--chip-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+            transition: background var(--transition);
+        }
+
+        .ac-item-icon svg { color: var(--indigo-light); }
+
+        .ac-item-text { min-width: 0; flex: 1; }
+
+        .ac-item-main {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ac-item-main mark {
+            background: transparent;
+            color: var(--indigo-light);
+            font-weight: 700;
+        }
+
+        .ac-item-sub {
+            font-size: 0.74rem;
+            color: var(--muted);
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ac-item-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--chip-text);
+            background: var(--chip-bg);
+            border: 1px solid var(--chip-border);
+            padding: 2px 8px;
+            border-radius: 100px;
+            flex-shrink: 0;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .ac-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 18px;
+        }
+
+        .ac-empty {
+            padding: 20px 18px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .ac-footer {
+            padding: 10px 18px 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .ac-footer kbd {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.7rem;
+            color: var(--text-2);
+        }
+
+        /* ══════════════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════════════ */
         @media (max-width: 640px) {
-            #homePage { padding: 40px 16px 60px; }
+            #homePage { padding: 56px 16px 60px; }
+
             .categories-grid { grid-template-columns: repeat(2, 1fr); }
 
-            .results-topbar {
-                padding: 12px 16px;
-                gap: 10px;
-            }
-
-            .area-filter-wrapper { flex: 1; }
-            .area-filter-wrapper select { max-width: 100%; width: 100%; }
-
-            .results-body { padding: 20px 16px 60px; }
-
-            .service-card {
-                grid-template-columns: 1fr;
-            }
-
-            .card-right {
-                flex-direction: row;
-                flex-wrap: wrap;
-            }
-
             .search-bar {
-                border-radius: 16px;
-                padding: 10px 10px 10px 16px;
+                border-radius: 18px;
+                padding: 10px 10px 10px 18px;
                 flex-wrap: wrap;
+                gap: 8px;
             }
 
             .search-divider { display: none; }
-            .location-select-wrapper { padding: 0; }
+            .loc-wrapper { padding: 0; }
+            .search-btn { width: 100%; justify-content: center; padding: 13px; }
 
-            .search-btn {
-                width: 100%;
-                justify-content: center;
-                padding: 12px;
-            }
+            .results-topbar { padding: 12px 16px; gap: 8px; }
+            .results-body { padding: 20px 16px 60px; }
+
+            .service-card { grid-template-columns: 1fr; }
+            .card-right { flex-direction: row; flex-wrap: wrap; align-items: center; }
+
+            .theme-toggle { top: 12px; right: 12px; width: 36px; height: 36px; }
         }
     </style>
 </head>
 <body>
 
+<!-- BG BLOBS -->
 <div class="bg-blobs">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
 </div>
 
-<!-- ══════════ HOME PAGE ══════════ -->
+<!-- THEME TOGGLE — fixed top-right, icon-only style like screenshot -->
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" id="themeToggleBtn">
+    <span id="themeIcon">
+        <!-- Moon icon shown in light mode (click to go dark) -->
+        <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <!-- Sun icon shown in dark mode (click to go light) -->
+        <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+    </span>
+    <span class="toggle-tooltip" id="themeTooltip">Switch to Dark Mode</span>
+</button>
+
+<!-- ══════════════════════════════════════
+     HOME PAGE
+══════════════════════════════════════ -->
 <div class="page active" id="homePage">
 
     <div class="hero">
-        <div class="hero-badge"><span>📍</span> Local Service Directory</div>
+        <div class="hero-badge">📍 Local Service Directory</div>
         <h1>Find the right person<br>for the <em>right job</em></h1>
         <p>Trusted local service providers at your fingertips. Search by service or browse by category.</p>
     </div>
 
-    <!-- UNIFIED SEARCH BAR -->
-    <div class="search-wrapper">
+    <!-- Unified search bar: text + location + button -->
+    <div class="search-wrapper" id="searchWrapper">
         <div class="search-bar">
-            <div class="search-icon">
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <span class="s-icon">
+                <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                     <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                 </svg>
-            </div>
-            <input type="text" id="homeSearchInput" placeholder="Search services — Plumbing, Electrician, Tiles…" autocomplete="off">
+            </span>
+            <input type="text" id="homeSearchInput"
+                   placeholder="Search — Plumbing, Electrician, Tiles…"
+                   autocomplete="off"
+                   role="combobox"
+                   aria-autocomplete="list"
+                   aria-expanded="false"
+                   aria-controls="acDropdown">
             <div class="search-divider"></div>
-            <div class="location-select-wrapper">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <div class="loc-wrapper">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
                     <circle cx="12" cy="9" r="2.5"/>
                 </svg>
-                <select id="homeAreaSelect">
-                    <option value="">All Areas</option>
-                </select>
+                <select id="homeAreaSelect"><option value="">All Areas</option></select>
             </div>
             <button class="search-btn" onclick="triggerHomeSearch()">Search</button>
         </div>
+
+        <!-- Autocomplete dropdown -->
+        <div class="autocomplete-dropdown" id="acDropdown" role="listbox"></div>
     </div>
 
-    <!-- CATEGORIES -->
+    <!-- Categories -->
     <div class="categories-wrapper">
         <div class="section-label">Browse by category</div>
         <div class="categories-grid">
@@ -908,7 +1215,9 @@
     </div>
 </div>
 
-<!-- ══════════ RESULTS PAGE ══════════ -->
+<!-- ══════════════════════════════════════
+     RESULTS PAGE
+══════════════════════════════════════ -->
 <div class="page" id="resultsPage">
 
     <div class="results-topbar">
@@ -919,21 +1228,22 @@
             Home
         </button>
 
-        <div class="results-search-bar">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" stroke-width="2">
+        <div class="res-search-bar">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"
+                 style="color:var(--muted);flex-shrink:0">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
-            <input type="text" id="resultsSearchInput" placeholder="Refine by service or name…" autocomplete="off">
+            <input type="text" id="resultsSearchInput"
+                   placeholder="Refine by service or name…"
+                   autocomplete="off">
         </div>
 
-        <div class="area-filter-wrapper">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <div class="area-filter">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
                 <circle cx="12" cy="9" r="2.5"/>
             </svg>
-            <select id="areaFilter">
-                <option value="">All Areas</option>
-            </select>
+            <select id="areaFilter"><option value="">All Areas</option></select>
         </div>
 
         <button class="clear-btn" onclick="clearAllFilters()">Clear</button>
@@ -942,24 +1252,255 @@
     <div class="results-body">
         <div class="results-meta">
             <h2 id="resultsHeading">All Providers</h2>
-            <div class="results-chips" id="resultsChips"></div>
+            <div class="chips-row" id="resultsChips"></div>
         </div>
         <div class="cards-list" id="resultsContainer"></div>
     </div>
 </div>
 
 <script>
+    /* ── DATA ── */
     const serviceProviders = [
-        { srNo: 1, name: "Mahesh Wadaskar",       job1: "MSEB Work",                                    job2: "Plumbing", job3: "LCD Projector",   contact1: "1234567891", contact2: "1234567891", address: "MG Road",                               reference: "Bhavna" },
-        { srNo: 2, name: "Kharat Patil",           job1: "MSEB Work",                                    job2: "Plumbing", job3: "Curtain Bracket", contact1: "1234567891", contact2: "1234567891", address: "Gajanan Colony",                         reference: "Bhavna" },
-        { srNo: 3, name: "Ganesh Ambekar",         job1: "LCD Projector",                                job2: "Plumbing", job3: "Geysor",          contact1: "1234567891", contact2: "1234567891", address: "Gajanan Colony",                         reference: "Bhavna" },
-        { srNo: 4, name: "Laxman Bhapkar",         job1: "Digging and Cutting of Trees",                 job2: "Plumbing", job3: "Curtain Bracket", contact1: "1234567891", contact2: "1234567891", address: "Chetak Ghoda, Jai Vishwabharti Colony",  reference: "Bhavna" },
-        { srNo: 5, name: "Prakash Dhangar Mistri", job1: "Tiles",                                        job2: "Plumbing", job3: "Electrician",     contact1: "1234567891", contact2: "1234567891", address: "Gajanan Colony",                         reference: "Bhavna" },
-        { srNo: 6, name: "Ramesh Shinde",          job1: "Maintenance of Home / Tiles",                  job2: "Plumbing", job3: "Electric",        contact1: "1234567891", contact2: "1234567891", address: "Jay Bhavani Nagar, N-4",                 reference: "Bhavna" },
-        { srNo: 7, name: "Vetal",                  job1: "Repairing of Mixer, AC, Electric Motor, Fridge, Cooler", job2: "Plumbing", job3: "Aluminium Windows", contact1: "1234567891", contact2: "1234567891", address: "Gajanan Colony",            reference: "Bhavna" }
-    ];
+  {srNo:98,name:"Vaibhav Naik",job1:"Rickshaw",job2:"",job3:"",contact1:"9049069856",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:103,name:"Kulkarni Satish",job1:"Rickshaw",job2:"",job3:"",contact1:"9922212814",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:105,name:"Ambition Services",job1:"pest Cantrol, cleaners",job2:"",job3:"",contact1:"7083089838",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:106,name:"Arak Dadarao",job1:"Tel. Repair",job2:"",job3:"",contact1:"7588675070",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:107,name:"Balagi Paper Raddi",job1:"Paper Raddi",job2:"",job3:"",contact1:"7798635365",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:108,name:"Chaudhary Anilkumar",job1:"Packers & Movers",job2:"",job3:"",contact1:"9423148251",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:109,name:"Deshmukh Sumit",job1:"Rain Water Harvesting",job2:"",job3:"",contact1:"8087936021",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:110,name:"Deshmukh Vinay",job1:"Construction",job2:"",job3:"",contact1:"9822020271",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:111,name:"Deshpande Shailesh",job1:"newspaper Distributor",job2:"",job3:"",contact1:"8149407269",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:112,name:"Joshi Prashant",job1:"Agro Tourism",job2:"",job3:"",contact1:"7720032974",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:113,name:"Kumavat Baban Ujiwal",job1:"sarpmitra",job2:"",job3:"",contact1:"9822839885",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:114,name:"Kulkarni Prashant",job1:"lighting",job2:"",job3:"",contact1:"9970641054",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:115,name:"Kulkarni Krishna",job1:"Electrical Work",job2:"",job3:"",contact1:"9850552856",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:116,name:"Kulkarni Abhay",job1:"Drip Irrigation",job2:"",job3:"",contact1:"9922903863",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:117,name:"Gorme Kishan Gundele",job1:"Foam Mattresses",job2:"",job3:"",contact1:"9823467484",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:118,name:"Jaiswal Vinod",job1:"Arts",job2:"",job3:"",contact1:"8668376969",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:119,name:"Kadam Nilesh",job1:"Curtain Wash",job2:"",job3:"",contact1:"9552858985",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:120,name:"Kamble Ramesh",job1:"welder Akolkar",job2:"",job3:"",contact1:"7385003150",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:121,name:"Kardile Pandurang",job1:"Dish. Washer Repair",job2:"",job3:"",contact1:"9588640236",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:122,name:"Kokil Manisha",job1:"Compliments Acricrafts",job2:"",job3:"",contact1:"9823318077",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:123,name:"Kolte Satish",job1:"Rubber Stamp Maker",job2:"",job3:"",contact1:"9371588050",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:124,name:"Mahale Shivaji",job1:"TV-Repair",job2:"",job3:"",contact1:"9421415547",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:125,name:"Maniram Jangid(Pt)",job1:"Carpenter",job2:"",job3:"",contact1:"9158120899",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:126,name:"Maniram Pal",job1:"Carpenter",job2:"",job3:"",contact1:"7505337961",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:127,name:"Nagare Kadubam",job1:"Vihir Bandhkam",job2:"",job3:"",contact1:"9960668725",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:129,name:"Niraj Daware",job1:"Optical Shop",job2:"",job3:"",contact1:"9423161915",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:130,name:"Omkari Somappa",job1:"Omkar Tyers",job2:"",job3:"",contact1:"9422203525",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:131,name:"Pardeshi Vilas",job1:"Electrical Welding",job2:"",job3:"",contact1:"9049894804",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:132,name:"Patil Dinesh",job1:"Landmark Survey",job2:"",job3:"",contact1:"9823028591",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:133,name:"Patil Madhukar",job1:"Rickshaw",job2:"",job3:"",contact1:"8668278865",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:134,name:"Pranesh Kulkarni",job1:"Taxi",job2:"",job3:"",contact1:"9823524355",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:136,name:"Sangale Mama",job1:"Raddi Bhangar",job2:"",job3:"",contact1:"9552687023",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:137,name:"sanjay furniture",job1:"furniture21",job2:"",job3:"",contact1:"9822021688",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:138,name:"Sethi Dhruv",job1:"Guddu Car Garage Pt",job2:"",job3:"",contact1:"9822331241",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:139,name:"Shelke Prakash",job1:"Motor Windings Ele.",job2:"",job3:"",contact1:"9890658775",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:140,name:"Shrikhande Bharat R.",job1:"Tirupati Saloon",job2:"",job3:"",contact1:"9823913028",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:141,name:"Tejpal Brij",job1:"RTO Work",job2:"",job3:"",contact1:"9823344471",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:142,name:"Vaidy Parag",job1:"Pushkaraj Electical",job2:"",job3:"",contact1:"8380046172",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:143,name:"Vaidy Suhas",job1:"Ropwatika",job2:"",job3:"",contact1:"9823030456",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:144,name:"Vaidya Nitin",job1:"Taxi",job2:"",job3:"",contact1:"9225227676",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:145,name:"Wagh Prashant",job1:"AC Repair",job2:"",job3:"",contact1:"7020437679",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:146,name:"Wagh Rajendra",job1:"Vimal Tyers",job2:"",job3:"",contact1:"9890013525",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:147,name:"Wahule Contractor",job1:"Builder, Painter",job2:"",job3:"",contact1:"7249569353",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:148,name:"Yadav Jagdish",job1:"Painter",job2:"",job3:"",contact1:"9823186077",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:149,name:"Yadav",job1:"Rly Booking",job2:"",job3:"",contact1:"9421071801",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:150,name:"Zingade Umakant",job1:"TV. Repair",job2:"",job3:"",contact1:"9422291596",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:151,name:"Kulkarni Aditya",job1:"Construction, Painting",job2:"",job3:"",contact1:"9421313417",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:152,name:"Ralegankar Shrirang",job1:"Hitachi AC DEALER",job2:"",job3:"",contact1:"8329936978",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:153,name:"Kale Pandurangji",job1:"Plumber",job2:"",job3:"",contact1:"9767314748",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:154,name:"Suresh Bhalerao",job1:"Plumber",job2:"",job3:"",contact1:"8421123231",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:155,name:"Tushar Water Supply",job1:"Water Supply",job2:"",job3:"",contact1:"9422206772",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:156,name:"Ganesh Nirmai",job1:"Fridge , OvenRepair",job2:"",job3:"",contact1:"7588435192",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:157,name:"Jeevan",job1:"Fridge , OvenRepair",job2:"",job3:"",contact1:"7219039314",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:158,name:"Sheshrao",job1:"Electrical Work",job2:"",job3:"",contact1:"9552232819",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:159,name:"Anand Deshmukh",job1:"Plumber",job2:"",job3:"",contact1:"8421974120",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:160,name:"GAYKE",job1:"Inverter",job2:"",job3:"",contact1:"9423611147",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:161,name:"PRABHU SONAWANE",job1:"AC WASHING MACHINE",job2:"",job3:"",contact1:"9421664500",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:162,name:"MADHAV RAJOLE",job1:"Electrical",job2:"",job3:"",contact1:"9561889588",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:163,name:"RAMESH RAJOLE",job1:"Electrical",job2:"",job3:"",contact1:"9890722367",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:168,name:"DESHMUKH",job1:"HARDWARE",job2:"",job3:"",contact1:"9823948707",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:169,name:"PRABHAKAR",job1:"Inverter",job2:"",job3:"",contact1:"98344739494",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:170,name:"KISHOR THORAT",job1:"WELDING",job2:"",job3:"",contact1:"9325940902",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:171,name:"SANDEEP KAPASE",job1:"AC, FREEZE",job2:"",job3:"",contact1:"9881233477",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:172,name:"SANTOSH ELECTRICAL",job1:"Electrical",job2:"",job3:"",contact1:"9057671133",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:173,name:"BADRI",job1:"Plumber",job2:"",job3:"",contact1:"9822813213",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:174,name:"PRASHANT WAGH",job1:"AC",job2:"",job3:"",contact1:"7020437679",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:175,name:"PRAVIN KULKARNI",job1:"POLIBHAZI",job2:"",job3:"",contact1:"9552273480",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:176,name:"RAVI RAILA",job1:"TAILOR",job2:"",job3:"",contact1:"9762961511",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:177,name:"SHAVAJI",job1:"Plumber",job2:"",job3:"",contact1:"9049770537",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:178,name:"PRASHANT ELECTRICAL",job1:"Electrical",job2:"",job3:"",contact1:"9823604689",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:179,name:"KISHOR ELECTRICA",job1:"Electrical",job2:"",job3:"",contact1:"9370146768",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:180,name:"SONU",job1:"RTO Work",job2:"",job3:"",contact1:"9823738828",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:181,name:"SAI SERVICING",job1:"TWO WHLLER",job2:"",job3:"",contact1:"9850527111",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:182,name:"AMAR YADAV",job1:"Inverter",job2:"",job3:"",contact1:"9422206450",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:183,name:"VAINWAR SALI",job1:"Inverter",job2:"",job3:"",contact1:"9890495673",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:184,name:"SANJAY RAJPUT",job1:"TURIST VEHICAL",job2:"",job3:"",contact1:"9049573285",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:185,name:"JAGANNATH PATIL",job1:"CATRAS",job2:"",job3:"",contact1:"9860678086",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:186,name:"KRISHNA KULKARNI",job1:"AC Repair",job2:"",job3:"",contact1:"9850552856",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:187,name:"PANDURANG KALE",job1:"Plumber",job2:"",job3:"",contact1:"9767314748",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:188,name:"DESHMUKH",job1:"Plumber",job2:"",job3:"",contact1:"9373063492",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:189,name:"BHANUDAS PHULE",job1:"Plumber",job2:"",job3:"",contact1:"9561268940",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:190,name:"Deepak",job1:"Plumber",job2:"",job3:"",contact1:"8485031664",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:191,name:"PRAKESH BHUTEKAR",job1:"Plumber",job2:"",job3:"",contact1:"9623188773",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:192,name:"SACHIN DONGARE",job1:"Plumber",job2:"",job3:"",contact1:"7038857519",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:193,name:"RANGANE",job1:"Plumber",job2:"",job3:"",contact1:"9422201143",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:194,name:"Suresh Bhalerao",job1:"Plumber",job2:"",job3:"",contact1:"9421123231",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:195,name:"PARAG VAIDYA",job1:"Electrical",job2:"",job3:"",contact1:"9405912883",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:196,name:"HARI SHINDE",job1:"Electrical",job2:"",job3:"",contact1:"8788233451",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:197,name:"DADASAHEB BANDU PATIL",job1:"Electrical",job2:"",job3:"",contact1:"9850551966",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:198,name:"Anirudha TAYADE",job1:"Electrical",job2:"",job3:"",contact1:"9850017173",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:199,name:"ASHOK",job1:"Electrical",job2:"",job3:"",contact1:"9021077080",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:200,name:"UMESH PARNERKAR",job1:"Inverter",job2:"",job3:"",contact1:"9890690217",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:201,name:"KAMLESH KALANI",job1:"Electrical",job2:"",job3:"",contact1:"942151111",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:202,name:"SHITAL ELECTRICAL",job1:"Electrical",job2:"",job3:"",contact1:"9464397330",contact2:"",address:"",reference:"Dandnayak"},
+  {srNo:1,name:"Mahesh Wadaskar",job1:"MSEB Work",job2:"",job3:"",contact1:"7066042329",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:2,name:"Kharat Patil",job1:"MSEB Work",job2:"",job3:"",contact1:"7066042120",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:3,name:"Ganesh Ambekar",job1:"",job2:"",job3:"",contact1:"9420923207",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:14,name:"Ratan Motekar",job1:"Gas Burner, Cooker repairing",job2:"",job3:"",contact1:"9850010664",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:26,name:"Umesh Harne",job1:"Repairing of Inverter",job2:"",job3:"",contact1:"9881304224",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:28,name:"Madhukar Pandit",job1:"Green House Fitting",job2:"",job3:"",contact1:"7709464790",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:35,name:"Shelke",job1:"Painter",job2:"",job3:"",contact1:"9822669360",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:37,name:"Kishan Gujar",job1:"Tiles Fitting",job2:"",job3:"",contact1:"7276157072",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:43,name:"Narayan Sharma",job1:"Tiles Fitting",job2:"",job3:"",contact1:"9823130580",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:55,name:"Samadhan Plumber",job1:"Plumber",job2:"",job3:"",contact1:"9730873607",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:63,name:"Rahul Mane",job1:"Electrician",job2:"",job3:"",contact1:"9112449938",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:66,name:"Deepak",job1:"Curtain Bracket Fitting",job2:"",job3:"",contact1:"8600037314",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:67,name:"Amol",job1:"Curtain Bracket Fitting",job2:"",job3:"",contact1:"7066702569",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:69,name:"Palwe",job1:"Curtain Bracket Fitting",job2:"",job3:"",contact1:"9765753541",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:81,name:"Shivaji Najan",job1:"Furniture",job2:"",job3:"",contact1:"",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:86,name:"Bhausaheb Shikare",job1:"Loading Rickshow",job2:"",job3:"",contact1:"9545762840",contact2:"",address:"",reference:"Unknown"},
+  {srNo:203,name:"Indapure Patil",job1:"Kitchen Trolley and Furniture",job2:"",job3:"",contact1:"8483894591",contact2:"",address:"",reference:""},
+  {srNo:204,name:"Malode Patil",job1:"Plumber",job2:"",job3:"",contact1:"8669125813",contact2:"",address:"",reference:""},
+  {srNo:205,name:"Nilesh Pawar",job1:"Electrician",job2:"",job3:"",contact1:"8888115458",contact2:"",address:"",reference:""},
+  {srNo:206,name:"Anil Gayke",job1:"Electrician",job2:"",job3:"",contact1:"9371222299",contact2:"",address:"",reference:""},
+  {srNo:207,name:"Narendra Nalawade Patil",job1:"Colour Painter",job2:"",job3:"",contact1:"9423741745",contact2:"",address:"",reference:""},
+  {srNo:209,name:"Ashok Nalawade",job1:"Flex Board",job2:"",job3:"",contact1:"9595599599",contact2:"",address:"",reference:""},
+  {srNo:211,name:"Satish Kunde",job1:"Wholesale Fruit and Vegetables",job2:"",job3:"",contact1:"7972559761",contact2:"",address:"",reference:""},
+  {srNo:212,name:"Prashant Ingle",job1:"Carpainter Furniture",job2:"",job3:"",contact1:"8888979055",contact2:"",address:"",reference:""},
+  {srNo:215,name:"Kakde Patil",job1:"Fabrication",job2:"",job3:"",contact1:"9421305757",contact2:"",address:"",reference:""},
+  {srNo:216,name:"Suresh Shinde",job1:"CCTV Installation",job2:"",job3:"",contact1:"9028823461",contact2:"",address:"",reference:""},
+  {srNo:217,name:"Pradeep Deshmukh",job1:"Labour Supply Contractor",job2:"",job3:"",contact1:"9503835555",contact2:"",address:"",reference:""},
+  {srNo:218,name:"Sanjay Devde",job1:"Iron Roof Top Solar",job2:"",job3:"",contact1:"7757895554",contact2:"",address:"",reference:""},
+  {srNo:219,name:"GAYKE",job1:"TV Dish Fitting",job2:"",job3:"",contact1:"9371222299",contact2:"",address:"",reference:""},
+  {srNo:220,name:"Naresh Patil",job1:"Construction Engineer",job2:"",job3:"",contact1:"9689056365",contact2:"",address:"",reference:""},
+  {srNo:221,name:"Saurabh Dube",job1:"Construction Maps Planning",job2:"",job3:"",contact1:"9284640276",contact2:"",address:"",reference:""},
+  {srNo:222,name:"Nitin Boite",job1:"Website Development",job2:"",job3:"",contact1:"9325452585",contact2:"",address:"",reference:""},
+  {srNo:226,name:"Sachin Jadhav",job1:"Cloth Drying and Supplier",job2:"",job3:"",contact1:"8668610194",contact2:"",address:"",reference:""},
+  {srNo:227,name:"Sri Provision",job1:"Wholesale Kirana Grocery Grain",job2:"",job3:"",contact1:"9689911888",contact2:"",address:"",reference:""},
+  {srNo:229,name:"Sanjay varkad patil",job1:"Electric and Electronic Appliances",job2:"",job3:"",contact1:"9823232303",contact2:"",address:"",reference:""},
+  {srNo:232,name:"Sachin Garad",job1:"S S Railing",job2:"",job3:"",contact1:"9422708079",contact2:"",address:"",reference:""},
+  {srNo:237,name:"Yogesh Deshmukh",job1:"Glass",job2:"",job3:"",contact1:"9637210222",contact2:"",address:"",reference:""},
+  {srNo:238,name:"Vadkile Patil",job1:"Computer Printer Sales service",job2:"",job3:"",contact1:"7387829000",contact2:"",address:"",reference:""},
+  {srNo:242,name:"New Harsh Mobile",job1:"Mobile Sales",job2:"",job3:"",contact1:"9890548949",contact2:"",address:"",reference:""},
+  {srNo:244,name:"Biker Automobile",job1:"2 Wheeler Repair and Servicing",job2:"",job3:"",contact1:"8788530028",contact2:"",address:"",reference:""},
+  {srNo:34,name:"Manoj Kumar Gupta",job1:"Paint Contractor",job2:"",job3:"",contact1:"9823325844",contact2:"9665526822",address:"",reference:"Bhavna"},
+  {srNo:49,name:"Sanket Gaikwad",job1:"Sofaset Cushion",job2:"",job3:"",contact1:"7385117561",contact2:"7666921931",address:"",reference:"Bhavna"},
+  {srNo:68,name:"Yogesh Patil",job1:"Curtain Bracket Fitting",job2:"",job3:"",contact1:"9049421731",contact2:"8446452614",address:"",reference:"Bhavna"},
+  {srNo:135,name:"Rahul Bawiskar",job1:"RTO Work",job2:"",job3:"",contact1:"9890378038",contact2:"9890431611",address:"",reference:"Dandnayak"},
+  {srNo:214,name:"Bhere Patil",job1:"Vendor of Cement and Steel",job2:"",job3:"",contact1:"9823979612",contact2:"9823296896",address:"",reference:""},
+  {srNo:245,name:"Prayas Agrotech",job1:"Hapus Mango Sale",job2:"",job3:"",contact1:"7058319988",contact2:"8888864906",address:"",reference:""},
+  {srNo:5,name:"Prakash Dhangar Mistri",job1:"Tiles",job2:"Plumbing",job3:"Kitchen ota",contact1:"7776885294",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:20,name:"Pradip Sontakke",job1:"Electrician",job2:"LCD Projector",job3:"",contact1:"9511252565",contact2:"7620321465",address:"",reference:"Bhavna"},
+  {srNo:24,name:"Vijay Mangi",job1:"AC , Washing Mac Repairing",job2:"Electrician",job3:"Floor Mill",contact1:"7721923292",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:31,name:"Aba Vaidya",job1:"",job2:"Gardening",job3:"",contact1:"9689866777",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:32,name:"Bhanudas Chaudhari",job1:"Painter",job2:"Carpainter",job3:"",contact1:"9028036939",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:48,name:"Pandurang Nikhal",job1:"Sofaset Cushion, mattresses",job2:"Curtain Bracket",job3:"",contact1:"9423625938",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:50,name:"Suyash Photos",job1:"Flex Board",job2:"Printing Press",job3:"",contact1:"9421433098",contact2:"",address:"",reference:"Bhavna"},
+  {srNo:75,name:"Vilas Gavai",job1:"Curtain Bracket Fitting",job2:"Kitchen Trolley",job3:"",contact1:"8698852378",contact2:"9309880422",address:"",reference:"Bhavna"},
+  {srNo:208,name:"Deepak Pawar Patil",job1:"Civil Construction",job2:"PoP",job3:"",contact1:"9594129793",contact2:"",address:"",reference:""},
+  {srNo:213,name:"Thengde Patil",job1:"Plumber",job2:"Vendor of Water Tanks",job3:"",contact1:"9527585900",contact2:"",address:"",reference:""},
+  {srNo:224,name:"Sadguru Baloons",job1:"Baloons",job2:"Stage Decoration",job3:"",contact1:"9588624751",contact2:"",address:"",reference:""},
+  {srNo:230,name:"Mohan Shikhre",job1:"Inverter Water Purifier",job2:"Solar",job3:"Floor Mill",contact1:"9372450784",contact2:"",address:"",reference:""},
+  {srNo:231,name:"Mahendra Kunde",job1:"Taxi Car Bus",job2:"Tour and Travels",job3:"",contact1:"9767797126",contact2:"",address:"",reference:""},
+  {srNo:233,name:"Narayan Daund Patil",job1:"Photographer",job2:"Videography",job3:"",contact1:"9422201859",contact2:"",address:"",reference:""},
+  {srNo:234,name:"Ambhore Patil",job1:"Guruji Karmakand",job2:"Pooja",job3:"",contact1:"9421301562",contact2:"",address:"",reference:""},
+  {srNo:235,name:"Nitin Patil",job1:"Kitchen Trolley and Furniture",job2:"Moduler Furniture",job3:"",contact1:"9665636203",contact2:"",address:"",reference:""},
+  {srNo:236,name:"Sachin Garad",job1:"Aluminium Window",job2:"Railing",job3:"Glass",contact1:"9637210222",contact2:"",address:"",reference:""},
+  {srNo:241,name:"Shubham Patil",job1:"Electrical",job2:"Plumbing",job3:"DTH Fitting",contact1:"9689571929",contact2:"",address:"",reference:""},
+  {srNo:243,name:"Sudam Patil",job1:"All Civil Construction Repairing",job2:"All home repairs",job3:"",contact1:"9623242086",contact2:"",address:"",reference:""},
+  {srNo:6,name:"Ramesh Shinde",job1:"Maintenance of Home / Tiles",job2:"Plumbing",job3:"Electric",contact1:"8888287498",contact2:"",address:"Jay Bhavani Nagar , N 4",reference:"Bhavna"},
+  {srNo:7,name:"Vetal",job1:"Repairing of Mixer, AC, Electric motor, Freeze,cooler",job2:"Plumbing",job3:"Aluminium Windows",contact1:"9850108096",contact2:"",address:"Gajanan Colony",reference:"Bhavna"},
+  {srNo:23,name:"Manoj Gaikwad",job1:"Electrician",job2:"Curtain Bracket",job3:"Jhula Fitting",contact1:"9765005863",contact2:"",address:"usmanpura, Ramnagar",reference:"Bhavna"},
+  {srNo:25,name:"Kakde Rangnath",job1:"Electrician",job2:"Jhula Fitting",job3:"Curtain Bracket",contact1:"9420241819",contact2:"",address:"Ulka Nagari",reference:"Bhavna"},
+  {srNo:29,name:"Girish Garud",job1:"Green House Fitting",job2:"Electrician",job3:"Curtain Bracket",contact1:"8411032999",contact2:"",address:"Jawahar Colony",reference:"Bhavna"},
+  {srNo:76,name:"Gautam Ragade",job1:"Curtain Bracket Fitting",job2:"Kitchen Trolley",job3:"Furniture",contact1:"",contact2:"",address:"Rama Nagar",reference:"Bhavna"},
+  {srNo:97,name:"Shailesh S Bhandari",job1:"Kirana,",job2:"Scrap Dealer",job3:"aAgriculture",contact1:"8788540545",contact2:"",address:"Shop No.34, Priti Apartment, Ulka Nagari",reference:"Unknown"},
+  {srNo:4,name:"Laxman Bhapkar",job1:"Digging and Cutting of Trees",job2:"",job3:"",contact1:"8888376964",contact2:"",address:"Chetak Ghoda, Jai vishwabharti colony",reference:"Bhavna"},
+  {srNo:8,name:"Babanrao Pazai",job1:"Civil Construction",job2:"Plumbing",job3:"",contact1:"7350495759",contact2:"",address:"Gajanan Colony",reference:"Bhavna"},
+  {srNo:9,name:"Prakash Bhore",job1:"Water Filter RO",job2:"",job3:"",contact1:"9960989727",contact2:"",address:"Shivaji Nagar , Garkheda",reference:"Bhavna"},
+  {srNo:10,name:"Balu",job1:"Solar, Kitchen Chimney",job2:"Gas Geysor",job3:"",contact1:"7798793824",contact2:"",address:"N 4,Opp. SBO School, TV Centre",reference:"Bhavna"},
+  {srNo:11,name:"Nandkishor Wagh",job1:"Solar, Kitchen Chimney",job2:"Gas Geysor",job3:"",contact1:"9422556697",contact2:"",address:"Ramnagar",reference:"Bhavna"},
+  {srNo:12,name:"Pramod",job1:"Induction, Mixter, Electric",job2:"Gas Geysor",job3:"",contact1:"9637755066",contact2:"",address:"Aakashwani",reference:"Bhavna"},
+  {srNo:13,name:"New Prakash Services",job1:"Gas Burner, Cooker repairing",job2:"",job3:"",contact1:"9823621510",contact2:"8624071714",address:"Tulja bhavani mandir, Jawahar Colony",reference:"Bhavna"},
+  {srNo:15,name:"Bochre Electricals",job1:"Electrical Work",job2:"",job3:"",contact1:"7588535539",contact2:"",address:"Vijay Nagar, Garkheda",reference:"Bhavna"},
+  {srNo:16,name:"Akshay Kathar",job1:"Repairing of TV, Fan",job2:"Repairing of Elec Motor",job3:"",contact1:"8149271018",contact2:"",address:"Bhavani Nagar, Juna Mondha",reference:"Bhavna"},
+  {srNo:17,name:"Santosh Jadhav",job1:"Dish TV",job2:"",job3:"",contact1:"7517052796",contact2:"",address:"Shivshankar Colony. Tanaji Chowk",reference:"Bhavna"},
+  {srNo:18,name:"Vithal Barkale",job1:"All Electrical Work",job2:"",job3:"",contact1:"9011923264",contact2:"",address:"N4, Cidco, Jay Bhavani Nagar",reference:"Bhavna"},
+  {srNo:19,name:"Suraj Kathar",job1:"Electricain",job2:"",job3:"",contact1:"7558790717",contact2:"",address:"Arihant Nagar",reference:"Bhavna"},
+  {srNo:21,name:"Mahendra Pande",job1:"Electrician",job2:"Curtain Bracket",job3:"",contact1:"9822954540",contact2:"8485829373",address:"Mitra Nagar",reference:"Bhavna"},
+  {srNo:22,name:"Vikram Devkar",job1:"Electrician",job2:"Geysor",job3:"",contact1:"9423714861",contact2:"",address:"Vishnu Nagar",reference:"Bhavna"},
+  {srNo:27,name:"Vyanktesh Electrical",job1:"LED CFL Bulp, Panel, Decoration Lighting",job2:"",job3:"",contact1:"8856066889",contact2:"",address:"New Shantiniketan Colony",reference:"Bhavna"},
+  {srNo:30,name:"Babasaheb Khandare",job1:"Green House Fitting",job2:"Gardening",job3:"",contact1:"8888140215",contact2:"",address:"Samarth Nagar",reference:"Bhavna"},
+  {srNo:33,name:"S N Gangawane",job1:"Painter",job2:"",job3:"",contact1:"7875393756",contact2:"",address:"Rama Nagar",reference:"Bhavna"},
+  {srNo:36,name:"Ashish Jadhav",job1:"Painter",job2:"",job3:"",contact1:"7745036351",contact2:"",address:"Hanuman Nagar",reference:"Bhavna"},
+  {srNo:38,name:"Rajastani",job1:"Tiles Fitting",job2:"",job3:"",contact1:"9799733432",contact2:"",address:"Balaji Nagar",reference:"Bhavna"},
+  {srNo:39,name:"Ajay Chaudhari",job1:"Tiles Fitting",job2:"",job3:"",contact1:"9637468572",contact2:"8180894573",address:"Buddha Nagar",reference:"Bhavna"},
+  {srNo:40,name:"Madhukar Kolnurkar",job1:"Tiles Fitting",job2:"",job3:"",contact1:"9326415015",contact2:"",address:"Ulka Nagari",reference:"Bhavna"},
+  {srNo:41,name:"Thorat Sir",job1:"Tiles Fitting",job2:"",job3:"",contact1:"9270033875",contact2:"",address:"Near Patwardhan Hos, Station Road",reference:"Bhavna"},
+  {srNo:42,name:"Rambrij Chaudhary",job1:"Tiles Fitting",job2:"",job3:"",contact1:"6391704012",contact2:"",address:"Pundalik Nagar",reference:"Bhavna"},
+  {srNo:44,name:"Anil Chede",job1:"Civil Construction",job2:"",job3:"",contact1:"8421162468",contact2:"7498099087",address:"Bhanudas Nagar",reference:"Bhavna"},
+  {srNo:45,name:"Ravi Sat dive",job1:"Water Proofing",job2:"",job3:"",contact1:"9923305309",contact2:"",address:"Kabra Nagar, Sutgirni",reference:"Bhavna"},
+  {srNo:46,name:"Balaji More",job1:"Water Proofing",job2:"",job3:"",contact1:"9923085261",contact2:"",address:"Shambhu nagar, Gadiya Vihar Road",reference:"Bhavna"},
+  {srNo:47,name:"Vijay Gawali",job1:"Water Proofing",job2:"",job3:"",contact1:"9021778078",contact2:"",address:"Shanti niketan Colony",reference:"Bhavna"},
+  {srNo:51,name:"Guddu Gaikwad",job1:"Painting Contractor",job2:"",job3:"",contact1:"9405343426",contact2:"",address:"Biwi Makbara Road",reference:"Bhavna"},
+  {srNo:53,name:"Amol Sawant",job1:"Fabrication",job2:"",job3:"",contact1:"7038449668",contact2:"",address:"Jay Bhavani Nagar",reference:"Bhavna"},
+  {srNo:54,name:"Ganesh Vitkare",job1:"Fabrication",job2:"Loading Rickshaw",job3:"",contact1:"8888643882",contact2:"",address:"Shivaji Nagar",reference:"Bhavna"},
+  {srNo:56,name:"Dekhne Plumber",job1:"Plumber",job2:"",job3:"",contact1:"9765769589",contact2:"",address:"Balaji Nagar",reference:"Bhavna"},
+  {srNo:57,name:"Vasantrao Godale",job1:"Plumber",job2:"",job3:"",contact1:"9822326623",contact2:"",address:"Gajanan Nagar",reference:"Bhavna"},
+  {srNo:58,name:"Anil Adole",job1:"Plumber",job2:"",job3:"",contact1:"8390071706",contact2:"",address:"Baudhh Nagar",reference:"Bhavna"},
+  {srNo:59,name:"Gaikwad Plumber",job1:"Plumber",job2:"",job3:"",contact1:"9561324079",contact2:"",address:"Uttam Nagar",reference:"Bhavna"},
+  {srNo:60,name:"Anil More",job1:"Plumber",job2:"",job3:"",contact1:"9823339467",contact2:"",address:"Shivaji Nagar",reference:"Bhavna"},
+  {srNo:61,name:"Anil Dabhade",job1:"Plumber",job2:"",job3:"",contact1:"8390391872",contact2:"",address:"Uttam Nagar",reference:"Bhavna"},
+  {srNo:62,name:"Anand Deshmukh",job1:"Plumber",job2:"",job3:"",contact1:"8421974120",contact2:"",address:"Shivshankar Colony",reference:"Bhavna"},
+  {srNo:64,name:"Vinod Khandagale",job1:"Plumber",job2:"",job3:"",contact1:"9673209197",contact2:"",address:"Gajanan Nagar, Pundalik Nagar Road",reference:"Bhavna"},
+  {srNo:65,name:"Sable",job1:"Electrician",job2:"",job3:"",contact1:"8605479487",contact2:"",address:"Uttam Nagar, Opp Ambedkar Statue",reference:"Bhavna"},
+  {srNo:70,name:"Sachin Bharambe",job1:"Curtain Bracket Fitting",job2:"",job3:"",contact1:"8698880038",contact2:"",address:"Uttam Nagar, Galli no. 4",reference:"Bhavna"},
+  {srNo:71,name:"Santosh Rathod",job1:"Curtain Bracket Fitting",job2:"",job3:"",contact1:"7385316131",contact2:"",address:"Jay Bhavani Nagar",reference:"Bhavna"},
+  {srNo:72,name:"Vishal Malwankar",job1:"Curtain Bracket Fitting",job2:"",job3:"",contact1:"77989920",contact2:"",address:"Pundalik Nagar, Galli No. 4",reference:"Bhavna"},
+  {srNo:73,name:"Abhimanu Chavan",job1:"Curtain Bracket Fitting",job2:"",job3:"",contact1:"7588190670",contact2:"",address:"Ulka Nagari",reference:"Bhavna"},
+  {srNo:74,name:"Ravindra Awhad",job1:"Carpainter Furniture",job2:"",job3:"",contact1:"9130100063",contact2:"",address:"n7, Chishtiya Colony, Cidco",reference:"Bhavna"},
+  {srNo:77,name:"Krushna Furniture",job1:"",job2:"",job3:"",contact1:"9623692029",contact2:"",address:"Jay Bhavani Nagar",reference:"Bhavna"},
+  {srNo:78,name:"Parasram Dolkathi",job1:"",job2:"",job3:"",contact1:"9767554470",contact2:"",address:"Sindhi Colony",reference:"Bhavna"},
+  {srNo:79,name:"Shankar Master",job1:"",job2:"",job3:"",contact1:"9860042390",contact2:"",address:"Pundalik Nagar",reference:"Bhavna"},
+  {srNo:80,name:"Vasant Bavdhane",job1:"Furniture",job2:"",job3:"",contact1:"9096081474",contact2:"",address:"Chikalthana / Ulkanagar",reference:"Bhavna"},
+  {srNo:82,name:"Kartik Wankhede",job1:"",job2:"",job3:"",contact1:"9766868804",contact2:"",address:"Jay Bhavani Nagar",reference:"Bhavna"},
+  {srNo:83,name:"Jadhav",job1:"",job2:"",job3:"",contact1:"",contact2:"",address:"Dashmeshnagar",reference:"Bhavna"},
+  {srNo:84,name:"Rushikesh Alteration",job1:"Cloth Alter",job2:"",job3:"",contact1:"9960224146",contact2:"",address:"Opp Jawahar Colony",reference:"Unknown"},
+  {srNo:87,name:"Shiv Basavraj Vadgire",job1:"Dryfruits",job2:"Fruits",job3:"",contact1:"9960820007",contact2:"9405600126",address:"S.No.3, Sudarshan Resi., Opp. Kashmira Dairy, Ulkanagari, C. Sambhajinagar",reference:"Unknown"},
+  {srNo:88,name:"Naveen Bhimji Sutar",job1:"TV Repair",job2:"Saree Shop",job3:"",contact1:"9890007219",contact2:"",address:"Near Tulja bhawani Mandir, Jawahar Colony",reference:"Unknown"},
+  {srNo:89,name:"Sunil Pandav",job1:"Computer Sales Repair",job2:"CCTV",job3:"",contact1:"902835466",contact2:"",address:"Chetak Ghoda",reference:"Unknown"},
+  {srNo:90,name:"Rangnath Kakde",job1:"Electrical",job2:"CCTV",job3:"",contact1:"9420241819",contact2:"",address:"Opp Jodhpur Sweets, Ulkanagari",reference:"Unknown"},
+  {srNo:91,name:"Satish Bagore",job1:"Computer Sales Repair",job2:"CCTV",job3:"",contact1:"9890923815",contact2:"",address:"Plot No.20, Shri Ram Nagar",reference:"Unknown"},
+  {srNo:92,name:"Jagdish Somnath Rana",job1:"Fabrication",job2:"Shutter Railing etc.",job3:"",contact1:"8055588828",contact2:"9423246954",address:"113, jay Vishwabharti Colony",reference:"Unknown"},
+  {srNo:93,name:"Rameshwar S. Mathe",job1:"Electrical Shop",job2:"",job3:"",contact1:"9370146768",contact2:"",address:"Ulkanagari",reference:"Unknown"},
+  {srNo:94,name:"Shailesh D Deshpande",job1:"Newspaper Sale",job2:"Insurance Advisor",job3:"",contact1:"8149407269",contact2:"",address:"Khinwansara",reference:"Unknown"},
+  {srNo:95,name:"Shrirang Ralegaonkar",job1:"AC Sales Service",job2:"",job3:"",contact1:"9822088675",contact2:"",address:"Kalda Corner , Chetana Nagar",reference:"Unknown"},
+  {srNo:96,name:"Shiva Thakur",job1:"Medical Shop",job2:"",job3:"",contact1:"7387577402",contact2:"",address:"74, Ulkanagari",reference:"Unknown"},
+  {srNo:99,name:"Anirudhh Walurkar",job1:"Repairing of All Home appliances",job2:"",job3:"",contact1:"9823688035",contact2:"",address:"Uttara Nagari Dhoot Hospital",reference:"Dandnayak"},
+  {srNo:100,name:"Anil Tayde",job1:"Electrician",job2:"",job3:"",contact1:"9850017173",contact2:"",address:"Shrey Nagar",reference:"Dandnayak"},
+  {srNo:101,name:"Jagtap Arjun",job1:"Fabrication Work",job2:"",job3:"",contact1:"9764241622",contact2:"",address:"Plot E 15/15, Chikalthana MIDC",reference:"Dandnayak"},
+  {srNo:102,name:"Rana Jagdishji",job1:"Fabrication Work",job2:"",job3:"",contact1:"8055588828",contact2:"",address:"Near Chetak Ghoda",reference:"Dandnayak"},
+  {srNo:104,name:"Parnerkar Umeshji",job1:"Inverter",job2:"",job3:"",contact1:"9890690217",contact2:"7588643927",address:"Pawan Nagar, Near Renuka Mata Mandir, Jalgaon Rd.",reference:"Dandnayak"},
+  {srNo:210,name:"Suraj Jagtap",job1:"Water Jar",job2:"",job3:"",contact1:"9922331611",contact2:"",address:"Padegaon",reference:""},
+  {srNo:223,name:"Jadhav Mandap",job1:"Mandap Decoration Lighting",job2:"",job3:"",contact1:"9823040947",contact2:"",address:"Cantonment area",reference:""},
+  {srNo:225,name:"Malusare Patil",job1:"Nursing Bureau",job2:"",job3:"",contact1:"9011047373",contact2:"",address:"Satara Parisar",reference:""},
+  {srNo:228,name:"Shubham Pathrikar",job1:"Wholesale Kirana Grocery Grain",job2:"",job3:"",contact1:"9075031621",contact2:"",address:"Jadhavwadi",reference:""},
+  {srNo:240,name:"Abhijeet More",job1:"Wheel Alignment Balancing",job2:"",job3:"",contact1:"9423657069",contact2:"",address:"Sai Services API Corner Jalna Road",reference:""}
+];
 
-    // ── DOM refs ──
+    /* ── DOM ── */
     const homePage           = document.getElementById('homePage');
     const resultsPage        = document.getElementById('resultsPage');
     const homeSearchInput    = document.getElementById('homeSearchInput');
@@ -970,31 +1511,50 @@
     const resultsHeading     = document.getElementById('resultsHeading');
     const resultsChips       = document.getElementById('resultsChips');
 
-    // ── Populate area dropdowns ──
-    function getUniqueAreas() {
-        return [...new Set(serviceProviders.map(p => p.address.trim()))].sort();
+    /* ── THEME ── */
+    const html = document.documentElement;
+
+    const saved = localStorage.getItem('seva-theme');
+    if (saved) applyTheme(saved);
+
+    function applyTheme(theme) {
+        html.setAttribute('data-theme', theme);
+        const isDark = theme === 'dark';
+        document.getElementById('iconMoon').style.display = isDark ? 'none'  : 'block';
+        document.getElementById('iconSun').style.display  = isDark ? 'block' : 'none';
+        document.getElementById('themeTooltip').textContent = isDark
+            ? 'Switch to Light Mode'
+            : 'Switch to Dark Mode';
     }
 
-    function populateAreaDropdowns() {
-        const areas = getUniqueAreas();
-        const opts = '<option value="">All Areas</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join('');
+    function toggleTheme() {
+        const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        applyTheme(next);
+        localStorage.setItem('seva-theme', next);
+    }
+
+    /* ── AREA DROPDOWNS ── */
+    function populateAreas() {
+        const areas = [...new Set(serviceProviders.map(p => p.address.trim()))].sort();
+        const opts  = '<option value="">All Areas</option>' +
+                      areas.map(a => `<option value="${a}">${a}</option>`).join('');
         homeAreaSelect.innerHTML = opts;
-        areaFilter.innerHTML = opts;
+        areaFilter.innerHTML     = opts;
     }
 
-    populateAreaDropdowns();
+    populateAreas();
 
-    // ── Navigation ──
-    function showPage(pageEl) {
+    /* ── NAVIGATION ── */
+    function showPage(el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        pageEl.classList.add('active');
-        window.scrollTo(0, 0);
+        el.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function goToHome() {
         showPage(homePage);
         homeSearchInput.value = '';
-        homeAreaSelect.value = '';
+        homeAreaSelect.value  = '';
     }
 
     function searchFromHome(query) {
@@ -1005,18 +1565,16 @@
     }
 
     function triggerHomeSearch() {
-        const q    = homeSearchInput.value.trim();
-        const area = homeAreaSelect.value;
-        resultsSearchInput.value = q;
-        areaFilter.value = area;
+        resultsSearchInput.value = homeSearchInput.value.trim();
+        areaFilter.value         = homeAreaSelect.value;
         showPage(resultsPage);
         performSearch();
     }
 
-    // ── Search logic ──
+    /* ── SEARCH ── */
     function performSearch() {
-        const term     = resultsSearchInput.value.toLowerCase().trim();
-        const selArea  = areaFilter.value;
+        const term    = resultsSearchInput.value.toLowerCase().trim();
+        const selArea = areaFilter.value;
 
         let filtered = serviceProviders;
 
@@ -1037,23 +1595,22 @@
         renderResults(filtered, term, selArea);
     }
 
-    // ── Render ──
-    function getInitials(name) {
-        return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    /* ── RENDER ── */
+    function initials(name) {
+        return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('');
     }
 
-    function renderResults(providers, term, selArea) {
-        // Heading
-        if (term) {
-            resultsHeading.innerHTML = `Results for <span>"${term}"</span>`;
-        } else {
-            resultsHeading.innerHTML = `All Providers`;
-        }
+    const phoneIcon = `<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .93h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>`;
+    const pinIcon  = `<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>`;
 
-        // Chips
-        let chipsHTML = `<span class="chip">${providers.length} found</span>`;
-        if (selArea) chipsHTML += `<span class="chip">📍 ${selArea}</span>`;
-        resultsChips.innerHTML = chipsHTML;
+    function renderResults(providers, term, selArea) {
+        resultsHeading.innerHTML = term
+            ? `Results for <span>"${term}"</span>`
+            : `All Providers`;
+
+        let chips = `<span class="chip">${providers.length} found</span>`;
+        if (selArea) chips += `<span class="chip">📍 ${selArea}</span>`;
+        resultsChips.innerHTML = chips;
 
         if (providers.length === 0) {
             resultsContainer.innerHTML = `
@@ -1062,53 +1619,43 @@
                     <h3>No providers found</h3>
                     <p>Try adjusting your search or clearing the area filter.</p>
                     <div class="suggestions-row">
-                        <span class="suggestion-pill" onclick="clearAllFilters()">Clear all filters</span>
-                        <span class="suggestion-pill" onclick="resultsSearchInput.value='Plumbing'; areaFilter.value=''; performSearch()">Plumbing</span>
-                        <span class="suggestion-pill" onclick="resultsSearchInput.value='Electrician'; areaFilter.value=''; performSearch()">Electrician</span>
-                        <span class="suggestion-pill" onclick="resultsSearchInput.value=''; areaFilter.value=''; performSearch()">View All</span>
+                        <span class="sug-pill" onclick="clearAllFilters()">Clear filters</span>
+                        <span class="sug-pill" onclick="resultsSearchInput.value='Plumbing';areaFilter.value='';performSearch()">Plumbing</span>
+                        <span class="sug-pill" onclick="resultsSearchInput.value='Electrician';areaFilter.value='';performSearch()">Electrician</span>
+                        <span class="sug-pill" onclick="resultsSearchInput.value='';areaFilter.value='';performSearch()">View All</span>
                     </div>
                 </div>`;
             return;
         }
 
         resultsContainer.innerHTML = providers.map((p, i) => {
-            const isDual = p.contact2 && p.contact2 !== p.contact1;
+            const dual = p.contact2 && p.contact2 !== p.contact1;
+            const ini  = initials(p.name);
             return `
-            <div class="service-card" style="animation-delay: ${i * 0.06}s">
+            <div class="service-card" style="animation-delay:${i * 0.055}s">
                 <div class="card-left">
                     <div class="card-header">
-                        <div class="provider-avatar">${getInitials(p.name)}</div>
+                        <div class="provider-avatar">
+                            <span>${ini}</span>
+                        </div>
                         <div class="provider-info">
                             <div class="provider-name">${p.name}</div>
                             <div class="provider-ref">Ref: ${p.reference}</div>
                         </div>
                     </div>
                     <div class="jobs-row">
-                        ${[p.job1, p.job2, p.job3].filter(Boolean).map(j => `<span class="job-chip">${j}</span>`).join('')}
+                        ${[p.job1, p.job2, p.job3].filter(Boolean).map(j =>
+                            `<span class="job-chip">${j}</span>`).join('')}
                     </div>
                     <div class="card-footer">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                            <circle cx="12" cy="9" r="2.5"/>
-                        </svg>
+                        ${pinIcon}
                         <span class="address-text ${selArea === p.address ? 'highlight' : ''}">${p.address}</span>
                     </div>
                 </div>
                 <div class="card-right">
-                    <div class="sr-badge">#${p.srNo}</div>
-                    <a href="tel:${p.contact1}" class="call-btn">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .93h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-                        </svg>
-                        ${p.contact1}
-                    </a>
-                    ${isDual ? `
-                    <a href="tel:${p.contact2}" class="call-btn">
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .93h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-                        </svg>
-                        ${p.contact2}
-                    </a>` : ''}
+                    <span class="sr-badge">#${p.srNo}</span>
+                    <a href="tel:${p.contact1}" class="call-btn">${phoneIcon} ${p.contact1}</a>
+                    ${dual ? `<a href="tel:${p.contact2}" class="call-btn">${phoneIcon} ${p.contact2}</a>` : ''}
                 </div>
             </div>`;
         }).join('');
@@ -1120,9 +1667,229 @@
         performSearch();
     }
 
-    // ── Event listeners ──
-    homeSearchInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') triggerHomeSearch();
+    /* ══════════════════════════════════════
+       AUTOCOMPLETE ENGINE
+    ══════════════════════════════════════ */
+    const acDropdown    = document.getElementById('acDropdown');
+    const searchWrapper = document.getElementById('searchWrapper');
+    let   acActiveIdx   = -1;
+    let   acItems       = [];   // flat list of suggestion objects currently rendered
+
+    /* Build a deduplicated index of all searchable tokens from data */
+    function buildSuggestionIndex() {
+        const serviceMap = new Map();   // service label → count
+        const nameMap    = new Map();   // provider name  → entry
+
+        serviceProviders.forEach(p => {
+            [p.job1, p.job2, p.job3].forEach(j => {
+                if (!j) return;
+                const key = j.trim();
+                serviceMap.set(key, (serviceMap.get(key) || 0) + 1);
+            });
+            if (p.name) nameMap.set(p.name.trim(), p);
+        });
+
+        return { serviceMap, nameMap };
+    }
+
+    const { serviceMap, nameMap } = buildSuggestionIndex();
+
+    /* Icons for service types */
+    const serviceIcons = {
+        'plumb': '🚰', 'water': '💧', 'electric': '💡', 'mseb': '⚡',
+        'tile': '🔲', 'ac': '❄️', 'fridge': '🧊', 'curtain': '🪟',
+        'paint': '🎨', 'carpenter': '🪚', 'furniture': '🪑', 'carpainter': '🪑',
+        'fabricat': '⚙️', 'welding': '🔥', 'weld': '🔥', 'taxi': '🚕',
+        'rickshaw': '🛺', 'tree': '🌳', 'lcd': '📽️', 'tv': '📺',
+        'computer': '💻', 'cctv': '📷', 'solar': '☀️', 'inverter': '🔋',
+        'geysor': '♨️', 'gas': '🔥', 'maintenance': '🔧', 'repair': '🛠️',
+        'pest': '🐛', 'clean': '🧹', 'mover': '📦', 'packer': '📦',
+        'construct': '🏗️', 'civil': '🏗️', 'newspaper': '📰', 'glass': '🪟',
+        'tailor': '🧵', 'saloon': '✂️', 'medical': '💊', 'grocery': '🛒',
+        'fruit': '🍎', 'milk': '🥛', 'photo': '📸', 'default': '🔧'
+    };
+
+    function getServiceIcon(label) {
+        const lower = label.toLowerCase();
+        for (const [key, icon] of Object.entries(serviceIcons)) {
+            if (lower.includes(key)) return icon;
+        }
+        return serviceIcons.default;
+    }
+
+    /* Highlight matched substring */
+    function highlight(text, query) {
+        if (!query) return text;
+        const idx = text.toLowerCase().indexOf(query.toLowerCase());
+        if (idx === -1) return text;
+        return text.slice(0, idx)
+             + `<mark>${text.slice(idx, idx + query.length)}</mark>`
+             + text.slice(idx + query.length);
+    }
+
+    /* Count how many providers match a service label */
+    function countForService(label) {
+        const term = label.toLowerCase();
+        return serviceProviders.filter(p =>
+            (p.job1||'').toLowerCase().includes(term) ||
+            (p.job2||'').toLowerCase().includes(term) ||
+            (p.job3||'').toLowerCase().includes(term)
+        ).length;
+    }
+
+    /* Build suggestion list given typed query */
+    function getSuggestions(query) {
+        const q = query.trim().toLowerCase();
+        if (!q) return [];
+
+        const services  = [];
+        const providers = [];
+        const seen      = new Set();
+
+        /* Match services */
+        for (const [label, count] of serviceMap.entries()) {
+            if (label.toLowerCase().includes(q) && !seen.has(label.toLowerCase())) {
+                seen.add(label.toLowerCase());
+                services.push({ type: 'service', label, count: countForService(label) });
+            }
+        }
+
+        /* Match provider names */
+        for (const [name, entry] of nameMap.entries()) {
+            if (name.toLowerCase().includes(q)) {
+                providers.push({ type: 'provider', label: name, entry });
+            }
+        }
+
+        /* Sort services by count desc, then alpha */
+        services.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+        return [...services.slice(0, 6), ...providers.slice(0, 4)];
+    }
+
+    /* Render dropdown */
+    function renderDropdown(query) {
+        const suggestions = getSuggestions(query);
+        acItems = suggestions;
+        acActiveIdx = -1;
+
+        if (!query.trim() || suggestions.length === 0) {
+            closeDropdown();
+            return;
+        }
+
+        const services  = suggestions.filter(s => s.type === 'service');
+        const providers = suggestions.filter(s => s.type === 'provider');
+
+        let html = '';
+
+        const searchIcon = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
+        const personIcon = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+
+        if (services.length > 0) {
+            html += `<div class="ac-section-label">Services</div>`;
+            services.forEach((s, i) => {
+                const icon = getServiceIcon(s.label);
+                html += `
+                <div class="ac-item" role="option" data-idx="${i}" onclick="selectSuggestion(${i})">
+                    <div class="ac-item-icon">${icon}</div>
+                    <div class="ac-item-text">
+                        <div class="ac-item-main">${highlight(s.label, query)}</div>
+                        <div class="ac-item-sub">Service category</div>
+                    </div>
+                    <div class="ac-item-badge">${s.count} provider${s.count !== 1 ? 's' : ''}</div>
+                </div>`;
+            });
+        }
+
+        if (providers.length > 0) {
+            if (services.length > 0) html += `<div class="ac-divider"></div>`;
+            html += `<div class="ac-section-label">Providers</div>`;
+            providers.forEach((s, i) => {
+                const globalIdx = services.length + i;
+                const jobs = [s.entry.job1, s.entry.job2, s.entry.job3].filter(Boolean).join(', ') || 'No services listed';
+                html += `
+                <div class="ac-item" role="option" data-idx="${globalIdx}" onclick="selectSuggestion(${globalIdx})">
+                    <div class="ac-item-icon">${personIcon}</div>
+                    <div class="ac-item-text">
+                        <div class="ac-item-main">${highlight(s.label, query)}</div>
+                        <div class="ac-item-sub">${jobs}</div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        html += `<div class="ac-footer">
+            <kbd>↑↓</kbd> navigate &nbsp;·&nbsp; <kbd>↵</kbd> select &nbsp;·&nbsp; <kbd>Esc</kbd> close
+        </div>`;
+
+        acDropdown.innerHTML = html;
+        openDropdown();
+    }
+
+    function openDropdown() {
+        acDropdown.classList.add('open');
+        homeSearchInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDropdown() {
+        acDropdown.classList.remove('open');
+        homeSearchInput.setAttribute('aria-expanded', 'false');
+        acActiveIdx = -1;
+    }
+
+    function setActiveItem(idx) {
+        const items = acDropdown.querySelectorAll('.ac-item');
+        items.forEach((el, i) => el.classList.toggle('active', i === idx));
+        acActiveIdx = idx;
+    }
+
+    function selectSuggestion(idx) {
+        const s = acItems[idx];
+        if (!s) return;
+        homeSearchInput.value = s.label;
+        closeDropdown();
+        triggerHomeSearch();
+    }
+
+    /* ── EVENTS ── */
+
+    /* Home search input — autocomplete */
+    homeSearchInput.addEventListener('input', e => {
+        renderDropdown(e.target.value);
+    });
+
+    /* Keyboard navigation */
+    homeSearchInput.addEventListener('keydown', e => {
+        const items = acDropdown.querySelectorAll('.ac-item');
+        const count = items.length;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActiveItem(Math.min(acActiveIdx + 1, count - 1));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActiveItem(Math.max(acActiveIdx - 1, 0));
+        } else if (e.key === 'Enter') {
+            if (acActiveIdx >= 0 && acDropdown.classList.contains('open')) {
+                e.preventDefault();
+                selectSuggestion(acActiveIdx);
+            } else {
+                closeDropdown();
+                triggerHomeSearch();
+            }
+        } else if (e.key === 'Escape') {
+            closeDropdown();
+        }
+    });
+
+    /* Close dropdown when clicking outside */
+    document.addEventListener('click', e => {
+        if (!searchWrapper.contains(e.target)) closeDropdown();
+    });
+
+    homeSearchInput.addEventListener('focus', e => {
+        if (e.target.value.trim()) renderDropdown(e.target.value);
     });
 
     resultsSearchInput.addEventListener('input', performSearch);

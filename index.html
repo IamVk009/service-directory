@@ -903,10 +903,8 @@
         }
 
         .autocomplete-dropdown {
-            position: absolute;
-            top: calc(100% + 10px);
-            left: 0;
-            right: 0;
+            position: fixed; /* fixed = above EVERYTHING in the document, regardless of stacking contexts */
+            /* top/left/width set dynamically by JS via repositionDropdown() */
             background: var(--surface);
             border: 1.5px solid var(--border);
             border-radius: 18px;
@@ -918,6 +916,8 @@
             pointer-events: none;
             transition: opacity 0.2s cubic-bezier(0.16,1,0.3,1),
                         transform 0.2s cubic-bezier(0.16,1,0.3,1);
+            max-height: 70vh;
+            overflow-y: auto;
         }
 
         .autocomplete-dropdown.open {
@@ -1052,22 +1052,28 @@
             height: 60px;
             display: flex;
             align-items: center;
-            padding: 0 24px;
+            padding: 0 16px 0 16px;
+            gap: 8px;
             justify-content: space-between;
             transition: background var(--transition), border-color var(--transition);
+            overflow: hidden; /* never let it push content out */
         }
 
         .header-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             text-decoration: none;
             cursor: pointer;
+            min-width: 0;   /* allow shrink */
+            flex: 1;
+            overflow: hidden;
         }
 
         .logo-mark {
             width: 34px;
             height: 34px;
+            min-width: 34px; /* never shrink the icon */
             border-radius: 10px;
             background: linear-gradient(135deg, var(--indigo), var(--violet));
             display: flex;
@@ -1081,31 +1087,34 @@
 
         .logo-text {
             font-family: 'Syne', sans-serif;
-            font-size: 1.2rem;
+            font-size: clamp(0.85rem, 3.8vw, 1.2rem); /* scales down on narrow screens */
             font-weight: 800;
             color: var(--text);
             letter-spacing: -0.02em;
-            transition: color var(--transition);
+            transition: color var(--transition), font-size var(--transition);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .logo-text span {
-            color: var(--indigo-light);
-        }
+        .logo-text span { color: var(--indigo-light); }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            flex-shrink: 0; /* right side NEVER shrinks — toggle stays visible */
         }
 
         .header-count {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 500;
             color: var(--muted);
             background: var(--surface-2);
             border: 1px solid var(--border);
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 100px;
+            white-space: nowrap;
             transition: background var(--transition), color var(--transition);
         }
 
@@ -1114,7 +1123,7 @@
         #resultsPage { padding-top: 60px; }
         .site-footer {
             position: relative;
-            z-index: 1;
+            z-index: 0; /* must never compete with autocomplete dropdown */
             background: var(--surface);
             border-top: 1px solid var(--border);
             padding: 28px 24px;
@@ -1189,7 +1198,11 @@
         .footer-copy {
             font-size: 0.75rem;
             color: var(--muted);
-            text-align: right;
+            text-align: right; /* desktop: sits on the far right */
+        }
+
+        @media (max-width: 640px) {
+            .footer-copy { text-align: left; } /* override for mobile */
         }
 
         /* push page content below fixed header */
@@ -1221,10 +1234,32 @@
             .service-card { grid-template-columns: 1fr; }
             .card-right { flex-direction: row; flex-wrap: wrap; align-items: center; }
 
+            /* Hide count pill on mobile — logo + toggle is all that fits */
             .header-count { display: none; }
-            .footer-links { gap: 12px; }
-            .footer-copy { font-size: 0.7rem; }
-            .footer-inner { flex-direction: column; align-items: flex-start; }
+
+            /* Footer mobile layout */
+            .footer-inner {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            .footer-links {
+                gap: 16px;
+                width: 100%;
+            }
+            .footer-copy {
+                font-size: 0.72rem;
+                text-align: left;
+                width: 100%;
+                padding-top: 4px;
+                border-top: 1px solid var(--border);
+            }
+        }
+
+        /* Extra-narrow: shrink logo-mark too */
+        @media (max-width: 360px) {
+            .logo-mark { width: 28px; height: 28px; min-width: 28px; border-radius: 8px; }
+            .logo-mark svg { width: 14px; height: 14px; }
         }
     </style>
 </head>
@@ -1438,6 +1473,8 @@
 ══════════════════════════════════════ -->
 <footer class="site-footer">
     <div class="footer-inner">
+
+        <!-- Row 1: Brand (always full width on mobile) -->
         <div class="footer-brand">
             <div class="logo-mark" style="width:28px;height:28px;border-radius:8px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1451,6 +1488,7 @@
             </div>
         </div>
 
+        <!-- Row 2: Stats -->
         <div class="footer-links">
             <div class="footer-stat">
                 <div class="footer-stat-num" id="footerProviderCount">237</div>
@@ -1468,10 +1506,12 @@
             </div>
         </div>
 
+        <!-- Row 3: Copy -->
         <div class="footer-copy">
             Made with ❤️ for the community<br>
             <span style="opacity:0.6">© 2025 SambhajinagarCare Directory</span>
         </div>
+
     </div>
 </footer>
 
@@ -2049,7 +2089,15 @@
         openDropdown();
     }
 
+    function repositionDropdown() {
+        const rect = searchWrapper.getBoundingClientRect();
+        acDropdown.style.top   = (rect.bottom + 10) + 'px';
+        acDropdown.style.left  = rect.left + 'px';
+        acDropdown.style.width = rect.width + 'px';
+    }
+
     function openDropdown() {
+        repositionDropdown();
         acDropdown.classList.add('open');
         homeSearchInput.setAttribute('aria-expanded', 'true');
     }
@@ -2107,12 +2155,21 @@
 
     /* Close dropdown when clicking outside */
     document.addEventListener('click', e => {
-        if (!searchWrapper.contains(e.target)) closeDropdown();
+        if (!searchWrapper.contains(e.target) && !acDropdown.contains(e.target)) closeDropdown();
     });
 
     homeSearchInput.addEventListener('focus', e => {
         if (e.target.value.trim()) renderDropdown(e.target.value);
     });
+
+    /* Keep fixed dropdown aligned on scroll / resize */
+    window.addEventListener('scroll', () => {
+        if (acDropdown.classList.contains('open')) repositionDropdown();
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+        if (acDropdown.classList.contains('open')) repositionDropdown();
+    }, { passive: true });
 
     resultsSearchInput.addEventListener('input', performSearch);
     areaFilter.addEventListener('change', performSearch);
